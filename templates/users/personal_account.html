@@ -1,0 +1,119 @@
+<!-- templates/users/personal_account.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Личный кабинет{% endblock %}
+{% block page_title %}Личный кабинет{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="profile-info-card">
+        <div class="profile-avatar-section">
+            <div class="profile-avatar-large">
+                {{ user.first_name|first|upper }}
+            </div>
+            <div style="margin-left: 20px;">
+                <h2 style="margin: 0 0 5px 0; color: #2c3e50;">
+                    {{ user.get_full_name }}
+                </h2>
+                <p style="color: #3498db; margin: 0; font-weight: 500;">
+                    {{ user.position.name|default:"Должность не указана" }}
+                </p>
+                <p style="color: #7f8c8d; margin: 5px 0 0 0; font-size: 14px;">
+                    {{ user.role.get_name_display|default:"Роль не назначена" }}
+                </p>
+            </div>
+        </div>
+        
+        <div class="profile-details-section">
+            <h3 style="color: #2c3e50; margin: 30px 0 20px 0; padding-bottom: 10px; border-bottom: 2px solid #f0f0f0;">
+                Информация о сотруднике
+            </h3>
+            
+            <div class="details-grid">
+                <div class="detail-item">
+                    <span class="detail-label">Табельный номер:</span>
+                    <span class="detail-value">{{ user.personnel_number }}</span>
+                </div>
+                
+                <div class="detail-item">
+                    <span class="detail-label">Фамилия:</span>
+                    <span class="detail-value">{{ user.last_name }}</span>
+                </div>
+                
+                <div class="detail-item">
+                    <span class="detail-label">Имя:</span>
+                    <span class="detail-value">{{ user.first_name }}</span>
+                </div>
+                
+                <div class="detail-item">
+                    <span class="detail-label">Отчество:</span>
+                    <span class="detail-value">
+                        {% if user.middle_name %}
+                            {{ user.middle_name }}
+                        {% else %}
+                            <span style="color: #95a5a6;">Не указано</span>
+                        {% endif %}
+                    </span>
+                </div>
+                
+                <div class="detail-item">
+                    <span class="detail-label">Должность:</span>
+                    <span class="detail-value">{{ user.position.name|default:"Не указана" }}</span>
+                </div>
+                
+                <div class="detail-item">
+                    <span class="detail-label">Электронная почта:</span>
+                    <span class="detail-value">{{ user.email }}</span>
+                </div>
+                
+                <div class="detail-item">
+                    <span class="detail-label">Дата регистрации:</span>
+                    <span class="detail-value">{{ user.registration_date|date:"d.m.Y H:i" }}</span>
+                </div>
+                
+                <div class="detail-item">
+                    <span class="detail-label">Роль в системе:</span>
+                    <span class="detail-value">{{ user.role.get_name_display|default:"Не назначена" }}</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="profile-actions-section">
+            <h3 style="color: #2c3e50; margin: 30px 0 20px 0; padding-bottom: 10px; border-bottom: 2px solid #f0f0f0;">
+                Действия
+            </h3>
+            
+            <div class="action-buttons">
+                <button data-url="{% url 'change_password' %}" 
+                        class="action-button change-password-btn">
+                    <span style="margin-right: 10px;">🔒</span>
+                    Изменить пароль
+                </button>
+                
+                <button data-url="{% url 'index' %}" 
+                        class="action-button edit-profile-btn">
+                    <span style="margin-right: 10px;">🏠</span>
+                    На главную
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Обработка кнопок с data-url
+    document.querySelectorAll('button[data-url]').forEach(button => {
+        button.addEventListener('click', function() {
+            const url = this.getAttribute('data-url');
+            if (url) {
+                window.location.href = url;
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

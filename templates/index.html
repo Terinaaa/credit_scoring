@@ -1,0 +1,37 @@
+<!-- templates/index.html -->
+{% extends 'base.html' %}
+
+{% block title %}Главная - Кредитный Скоринг{% endblock %}
+{% block page_title %}Главная страница{% endblock %}
+
+{% block content %}
+<div class="welcome-card">
+    <h2>Добро пожаловать в систему оценки кредитоспособности!</h2>
+    <p>Используйте нейросетевые алгоритмы для точной оценки кредитных рисков и принятия взвешенных решений.</p>
+    
+    {% if not user.is_authenticated %}
+    <div class="auth-buttons">
+        <a href="{% url 'registration_start' %}" class="auth-button">
+            <span style="margin-right: 10px;">📝</span>
+            Регистрация
+        </a>
+        <a href="{% url 'login' %}" class="auth-button secondary">
+            <span style="margin-right: 10px;">↪️</span>
+            Вход
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+{% if user.is_authenticated %}
+<!-- ВРЕМЕННО ДЛЯ ОТЛАДКИ -->
+<div style="background: #f8f9fa; padding: 10px; margin: 10px 0; border: 1px solid #ddd;">
+    <strong>Отладка пользователя:</strong><br>
+    Имя пользователя: {{ user.username }}<br>
+    Полное имя: {{ user.get_full_name }}<br>
+    Табельный номер: {{ user.personnel_number|default:"не указан" }}<br>
+    Email: {{ user.email|default:"не указан" }}<br>
+    Роль: {{ user.role.get_name_display|default:"не назначена" }}<br>
+</div>
+{% endif %}
+{% endblock %}

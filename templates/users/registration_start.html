@@ -1,0 +1,76 @@
+<!-- templates/users/registration_start.html -->
+{% extends 'base.html' %}
+
+{% block title %}Начало регистрации{% endblock %}
+{% block page_title %}Начало регистрации{% endblock %}
+
+{% block content %}
+<div class="form-wrapper">
+    <div class="container">
+        <h2 style="text-align: center; margin-bottom: 30px; color: #2c3e50;">
+            Введите табельный номер
+        </h2>
+        
+        <p style="text-align: center; margin-bottom: 30px; color: #7f8c8d;">
+            Регистрация доступна только сотрудникам, добавленным администратором системы.
+            Если у вас нет табельного номера в системе, обратитесь к администратору.
+        </p>
+        
+        <form method="POST" action="{% url 'registration_start' %}" id="personnelNumberForm">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="id_personnel_number">{{ form.personnel_number.label }} <span class="required">*</span></label>
+                {{ form.personnel_number }}
+                {% if form.personnel_number.errors %}
+                    <div class="error-message">
+                        {% for error in form.personnel_number.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <button type="submit" name="submit" id="submitBtn">Продолжить</button>
+            
+            <div class="login-link">
+                <p>Уже есть учетная запись? <a href="{% url 'login' %}">Войти</a></p>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // очистка значения от всех символов, кроме цифр
+    function normalizePersonnelNumber() {
+        const field = document.getElementById('id_personnel_number');
+        if (field) {
+            field.value = field.value.replace(/\D/g, '');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const personnelNumberField = document.getElementById('id_personnel_number');
+        if (personnelNumberField) {
+            personnelNumberField.addEventListener('input', normalizePersonnelNumber);
+        }
+        
+        const form = document.getElementById('personnelNumberForm');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                const personnelNumber = document.getElementById('id_personnel_number').value.trim();
+                
+                if (personnelNumber.length === 0) {
+                    e.preventDefault();
+                    alert('Введите табельный номер');
+                    document.getElementById('id_personnel_number').focus();
+                    return;
+                }
+                
+                document.getElementById('submitBtn').disabled = true;
+                document.getElementById('submitBtn').textContent = 'Проверка...';
+            });
+        }
+    });
+</script>
+{% endblock %}

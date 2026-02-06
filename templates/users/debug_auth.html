@@ -1,0 +1,72 @@
+<!-- templates/users/debug_auth.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Диагностика аутентификации</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .form-group { margin: 10px 0; }
+        input { padding: 5px; width: 200px; }
+        .results { margin-top: 20px; padding: 10px; background: #f5f5f5; }
+        .success { color: green; }
+        .error { color: red; }
+        .user-list { margin-top: 20px; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Диагностика аутентификации</h1>
+        
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>Логин/табельный номер:</label>
+                <input type="text" name="username" required>
+            </div>
+            <div class="form-group">
+                <label>Пароль:</label>
+                <input type="password" name="password" required>
+            </div>
+            <button type="submit">Проверить</button>
+        </form>
+        
+        {% if results %}
+        <div class="results">
+            <h3>Результаты:</h3>
+            <pre>{% for line in results %}{{ line }}
+{% endfor %}</pre>
+        </div>
+        {% endif %}
+        
+        <div class="user-list">
+            <h3>Первые 10 пользователей в БД:</h3>
+            <table>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Таб. номер</th>
+                    <th>Email</th>
+                    <th>is_active</th>
+                    <th>is_pre_registered</th>
+                    <th>Пароль установлен</th>
+                </tr>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.id }}</td>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.personnel_number }}</td>
+                    <td>{{ user.email|default:"—" }}</td>
+                    <td>{{ user.is_active }}</td>
+                    <td>{{ user.is_pre_registered }}</td>
+                    <td>{{ user.has_usable_password }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+</body>
+</html>
