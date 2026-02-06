@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.pyc
+venv/
+env/
+
+# Django
+*.log
+media/
+staticfiles/
+
+# PostgreSQL
+*.backup
+*.sql
+*.dump
+postgres_data/
+pgdata/
+
+# Базы данных (все типы)
+db.sqlite3
+*.db
+*.sqlite
+
+# Environment variables
+.env
+.env.local
+secrets.py
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Backup файлы проекта
+backup/
+backups/
+*.bak
