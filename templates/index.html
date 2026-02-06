@@ -24,7 +24,7 @@
 </div>
 
 {% if user.is_authenticated %}
-<!-- ВРЕМЕННО ДЛЯ ОТЛАДКИ -->
+<!-- ВРЕМЕННО ДЛЯ ОТЛАДКИ
 <div style="background: #f8f9fa; padding: 10px; margin: 10px 0; border: 1px solid #ddd;">
     <strong>Отладка пользователя:</strong><br>
     Имя пользователя: {{ user.username }}<br>
@@ -32,6 +32,6 @@
     Табельный номер: {{ user.personnel_number|default:"не указан" }}<br>
     Email: {{ user.email|default:"не указан" }}<br>
     Роль: {{ user.role.get_name_display|default:"не назначена" }}<br>
-</div>
+</div> -->
 {% endif %}
 {% endblock %}

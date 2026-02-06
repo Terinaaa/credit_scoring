@@ -1,12 +1,11 @@
-# apps/users/views.py
 from django.shortcuts import render, redirect
-from django.contrib.auth import login, authenticate, logout
+from django.contrib.auth import login, authenticate, logout,update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.contrib.auth.forms import AuthenticationForm
-from .forms import RegistrationForm, PersonnelNumberForm
+from .forms import RegistrationForm, PersonnelNumberForm, EmailAuthenticationForm
 from .models import User, EmployeePosition
-from .forms import EmailAuthenticationForm
+from django.contrib.auth.forms import PasswordChangeForm
+
 
 # главная страница
 def index_view(request):
@@ -40,8 +39,6 @@ def login_view(request):
             else:
                 messages.error(request, 'Неверный логин или пароль')
         else:
-            print(form.cleaned_data.get('username'))
-            print(form.cleaned_data.get('password'))
             user = authenticate(username=form.cleaned_data.get('username'), password=form.cleaned_data.get('password'))
             if user is not None:
                 print("not None")
@@ -84,11 +81,11 @@ def registration_start_view(request):
                 messages.error(request, 
                     'Сотрудник с таким табельным номером не найден. '
                     'Обратитесь к администратору для добавления в систему.')
-    
     else:
         form = PersonnelNumberForm()
     
     return render(request, 'users/registration_start.html', {'form': form})
+
 # второй шаг регистрации
 def registration_complete_view(request):
     # если пользователь авторизован, редирект на главную
@@ -119,11 +116,9 @@ def registration_complete_view(request):
         if form.is_valid():
             # обновление данных пользователя в БД
             user = form.save()
-            
             # очистка сессии
             if 'registration_personnel_number' in request.session:
                 del request.session['registration_personnel_number']
-            
             # автоматическая аутентификация после регистрации
             login(request, user)
             # сообщение об успешном завершении регистрации
@@ -168,78 +163,20 @@ def personal_account_view(request):
         'user': request.user
     })
 
-### ДИАГНОСТИКА ###
-# views.py - добавьте новую функцию
-from django.shortcuts import render
-from django.http import HttpResponse
-from apps.users.models import User
-import json
+def personal_account_view(request):
+    return render(request, 'users/personal_account.html')
 
-def debug_auth(request):
-    """Диагностическая страница для отладки аутентификации"""
-    results = []
-    
+@login_required
+def change_password_view(request):
     if request.method == 'POST':
-        username = request.POST.get('username', '')
-        password = request.POST.get('password', '')
-        
-        results.append(f"Получены данные: username='{username}', password='{password[:3]}...'")
-        
-        # 1. Ищем пользователя
-        user = None
-        try:
-            user = User.objects.get(username=username)
-            results.append(f"✓ Найден по username: {user.username}")
-        except User.DoesNotExist:
-            results.append("✗ Не найден по username")
-        
-        if not user:
-            try:
-                user = User.objects.get(personnel_number=username)
-                results.append(f"✓ Найден по табельному номеру: {user.personnel_number}")
-            except User.DoesNotExist:
-                results.append("✗ Не найден по табельному номеру")
-        
-        # 2. Если пользователь найден, проверяем его данные
-        if user:
-            results.append(f"Данные пользователя:")
-            results.append(f"  - username: {user.username}")
-            results.append(f"  - personnel_number: {user.personnel_number}")
-            results.append(f"  - email: {user.email}")
-            results.append(f"  - is_active: {user.is_active}")
-            results.append(f"  - is_pre_registered: {user.is_pre_registered}")
-            results.append(f"  - has_usable_password(): {user.has_usable_password()}")
-            results.append(f"  - last_login: {user.last_login}")
-            
-            # 3. Проверяем пароль
-            if user.check_password(password):
-                results.append("✓ Пароль верный!")
-                results.append(f"  check_password('{password}') = True")
-            else:
-                results.append("✗ Пароль неверный!")
-                # Проверяем конкретно что хранится
-                results.append(f"  check_password('{password}') = False")
-                
-                # Показываем хэш пароля для отладки
-                results.append(f"  Пароль в БД: {user.password[:50]}...")
-                
-                # Проверяем альтернативные пароли
-                test_passwords = ['123456', 'password', 'test123', user.personnel_number]
-                for test_pwd in test_passwords:
-                    if user.check_password(test_pwd):
-                        results.append(f"  Возможный пароль: '{test_pwd}'")
-        
-        # 4. Пробуем стандартную аутентификацию Django
-        from django.contrib.auth import authenticate
-        auth_user = authenticate(request, username=username, password=password)
-        results.append(f"\nСтандартная authenticate() вернула: {auth_user}")
-        
-        if auth_user:
-            results.append(f"✓ Стандартная аутентификация работает!")
-        else:
-            results.append("✗ Стандартная аутентификация не работает")
+        form = PasswordChangeForm(request.user, request.POST) # встроенная форма django
+        if form.is_valid():
+            user = form.save() # сохранение нового пароля в БД
+            # обновление сессии, чтобы пользователь не разлогинился
+            update_session_auth_hash(request, user)
+            messages.success(request, 'Пароль успешно изменен!')
+            return redirect('personal_account')
+    else:
+        form = PasswordChangeForm(request.user)
     
-    return render(request, 'users/debug_auth.html', {
-        'results': results,
-        'users': User.objects.all()[:5]  # первые 5 пользователей
-    })
+    return render(request, 'users/change_password.html', {'form': form})

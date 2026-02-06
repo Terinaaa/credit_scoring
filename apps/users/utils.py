@@ -28,7 +28,8 @@ def get_menu_by_role(role_name):
         'system_admin': [
             {'url': '/scoring/', 'icon': '📊', 'text': 'Оценка кредитоспособности'},
             {'url': '/clients/', 'icon': '👤', 'text': 'Данные по клиенту'},
-            {'url': '/reports/', 'icon': '📈', 'text': 'Отчетность'}
+            {'url': '/reports/', 'icon': '📈', 'text': 'Отчетность'},
+            {'url': '/admin/', 'icon': '📈', 'text': 'Панель управления'}
         ]
     }
     

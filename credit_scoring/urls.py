@@ -8,5 +8,4 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', index_view, name='index'),
     path('users/', include('apps.users.urls')),
-    path('debug-auth/', user_views.debug_auth, name='debug_auth'),
 ]
