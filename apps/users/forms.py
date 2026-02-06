@@ -1,6 +1,6 @@
 # apps/users/forms.py
 from django import forms
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import PasswordChangeForm
 from django.core.exceptions import ValidationError
 from .models import User, EmployeePosition
 from django.contrib.auth.forms import AuthenticationForm
@@ -208,3 +208,29 @@ class RegistrationForm(forms.ModelForm):
             user.save()
         
         return user
+
+# кастомная смена пароля с его валидацией   
+class CustomPasswordChangeForm(PasswordChangeForm):
+    def clean_new_password1(self):
+        password = self.cleaned_data.get('new_password1')
+        if password:
+            password_pattern = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[~!?@#$%^&*_\-+()\[\]{}><\/\\|"\'.:,;])[^\s]{8,}$'
+            if not re.match(password_pattern, password):
+                raise ValidationError(
+                    'Пароль должен содержать минимум 8 символов, включать латинские буквы '
+                    'в разных регистрах, цифру и специальный символ'
+                )
+            # пароль не должен совпадать со старым
+            old_password = self.cleaned_data.get('old_password')
+            if old_password and password == old_password:
+                raise ValidationError('Новый пароль должен отличаться от старого')
+        return password
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        # проверка совпадения новых паролей
+        new_password1 = cleaned_data.get('new_password1')
+        new_password2 = cleaned_data.get('new_password2')
+        if new_password1 and new_password2 and new_password1 != new_password2:
+            raise ValidationError({'new_password2': 'Новые пароли не совпадают'})
+        return cleaned_data

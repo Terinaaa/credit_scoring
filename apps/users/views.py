@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .forms import RegistrationForm, PersonnelNumberForm, EmailAuthenticationForm
 from .models import User, EmployeePosition
-from django.contrib.auth.forms import PasswordChangeForm
+from .forms import CustomPasswordChangeForm
 
 
 # главная страница
@@ -169,7 +169,7 @@ def personal_account_view(request):
 @login_required
 def change_password_view(request):
     if request.method == 'POST':
-        form = PasswordChangeForm(request.user, request.POST) # встроенная форма django
+        form = CustomPasswordChangeForm(request.user, request.POST) # кастомная форма смены пароля
         if form.is_valid():
             user = form.save() # сохранение нового пароля в БД
             # обновление сессии, чтобы пользователь не разлогинился
@@ -177,6 +177,6 @@ def change_password_view(request):
             messages.success(request, 'Пароль успешно изменен!')
             return redirect('personal_account')
     else:
-        form = PasswordChangeForm(request.user)
+        form = CustomPasswordChangeForm(request.user)
     
     return render(request, 'users/change_password.html', {'form': form})
