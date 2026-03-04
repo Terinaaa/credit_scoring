@@ -38,3 +38,6 @@ Thumbs.db
 backup/
 backups/
 *.bak
+
+# Набор данных
+ml_model/data/*.csv
