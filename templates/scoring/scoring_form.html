@@ -1,0 +1,90 @@
+<!-- templates/scoring/scoring_form.html -->
+{% extends 'base.html' %}
+
+{% block title %}Кредитный скоринг{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Оценка кредитоспособности</h1>
+    
+    <div class="row">
+        <!-- Форма ввода -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Данные клиента</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <h6 class="mt-3">Платежеспособность</h6>
+                        <div class="row">
+                            <div class="col-md-6 mb-2">{{ form.loan_amnt.label_tag }} {{ form.loan_amnt }}</div>
+                            <div class="col-md-6 mb-2">{{ form.installment.label_tag }} {{ form.installment }}</div>
+                            <div class="col-md-6 mb-2">{{ form.annual_inc.label_tag }} {{ form.annual_inc }}</div>
+                            <div class="col-md-6 mb-2">{{ form.dti.label_tag }} {{ form.dti }}</div>
+                        </div>
+                        
+                        <h6 class="mt-3">Кредитная дисциплина</h6>
+                        <div class="row">
+                            <div class="col-md-4 mb-2">{{ form.delinq_2yrs.label_tag }} {{ form.delinq_2yrs }}</div>
+                            <div class="col-md-4 mb-2">{{ form.acc_now_delinq.label_tag }} {{ form.acc_now_delinq }}</div>
+                            <div class="col-md-4 mb-2">{{ form.pub_rec.label_tag }} {{ form.pub_rec }}</div>
+                            <div class="col-md-4 mb-2">{{ form.pub_rec_bankruptcies.label_tag }} {{ form.pub_rec_bankruptcies }}</div>
+                            <div class="col-md-4 mb-2">{{ form.collections_12_mths_ex_med.label_tag }} {{ form.collections_12_mths_ex_med }}</div>
+                        </div>
+                        
+                        <!-- Добавьте остальные группы полей аналогично -->
+                        
+                        <button type="submit" class="btn btn-primary mt-3">Рассчитать скоринг</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Результат -->
+        {% if result %}
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header {% if result.decision == 'AUTO_APPROVE' %}bg-success{% elif result.decision == 'AUTO_REJECT' %}bg-danger{% else %}bg-warning{% endif %} text-white">
+                    <h5>Результат оценки</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Вероятность дефолта (PD):</strong> {{ result.probability }}%</p>
+                    <p><strong>Скоринговый балл:</strong> {{ result.score }}</p>
+                    <p><strong>Решение:</strong> 
+                        <span class="badge {% if result.decision == 'AUTO_APPROVE' %}bg-success{% elif result.decision == 'AUTO_REJECT' %}bg-danger{% else %}bg-warning{% endif %}">
+                            {{ result.decision_ru }}
+                        </span>
+                    </p>
+                    
+                    <hr>
+                    <h6>Пороги принятия решений:</h6>
+                    <ul>
+                        <li>Автоодобрение: балл > {{ result.thresholds.score_T1 }}</li>
+                        <li>Автоотказ: балл < {{ result.thresholds.score_T2 }}</li>
+                    </ul>
+                    
+                    <hr>
+                    <h6>Ключевые факторы:</h6>
+                    <ul>
+                        {% for factor in result.factors %}
+                        <li class="{% if factor.direction == 'повышает риск' %}text-danger{% else %}text-success{% endif %}">
+                            {{ factor.reason }} — <strong>{{ factor.direction }}</strong>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} mt-3">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+</div>
+{% endblock %}

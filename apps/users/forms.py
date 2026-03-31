@@ -68,50 +68,13 @@ class PersonnelNumberForm(forms.Form):
         return personnel_number
 
 
-class RegistrationForm(forms.ModelForm):
-    """Форма завершения регистрации сотрудником"""
-    email = forms.EmailField(
-        label="Электронная почта",
-        widget=forms.EmailInput(attrs={
-            'placeholder': 'example@mail.ru',
-            'class': 'form-control'
-        })
-    )
-    last_name = forms.CharField(
-        label="Фамилия",
-        widget=forms.TextInput(attrs={
-            'placeholder': 'Иванов',
-            'class': 'form-control',
-            'oninput': "validateName(this)"
-        })
-    )
-    first_name = forms.CharField(
-        label="Имя",
-        widget=forms.TextInput(attrs={
-            'placeholder': 'Иван',
-            'class': 'form-control',
-            'oninput': "validateName(this)"
-        })
-    )
-    middle_name = forms.CharField(
-        label="Отчество",
-        required=False,
-        widget=forms.TextInput(attrs={
-            'placeholder': 'Иванович',
-            'class': 'form-control',
-            'oninput': "validateName(this)"
-        })
-    )
-    position = forms.ModelChoiceField(
-        label="Должность",
-        queryset=EmployeePosition.objects.all(),
-        empty_label="Выберите должность",
-        widget=forms.Select(attrs={'class': 'form-control'})
-    )
+class RegistrationForm(forms.Form):
+    """Упрощенная форма завершения регистрации - только пароль"""
+    
     password1 = forms.CharField(
         label="Пароль",
         widget=forms.PasswordInput(attrs={
-            'placeholder': 'Не менее 8 символов. Минимум одна строчная буква, одна прописная, цифра и символ',
+            'placeholder': 'Не менее 8 символов',
             'class': 'form-control',
             'oninput': 'validatePassword()'
         })
@@ -124,35 +87,11 @@ class RegistrationForm(forms.ModelForm):
             'oninput': 'checkPasswordMatch()'
         })
     )
-    # связка формы с молелью базы данных User, определение отражаемых и обрабатываемых полей
-    class Meta:
-        model = User
-        fields = [
-            'email', 'last_name', 'first_name', 
-            'middle_name', 'position', 'password1', 'password2'
-        ]
-    # ToDo: РАЗОБРАТЬСЯ С ЭТИМ 
+    
     def __init__(self, *args, **kwargs):
-        self.personnel_number = kwargs.pop('personnel_number', None)
+        self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
     
-    def clean_personnel_number(self):
-        """Проверка табельного номера"""
-        if not self.personnel_number:
-            raise ValidationError('Табельный номер не указан')
-        return self.personnel_number
-    
-    def clean_email(self):
-        """Валидация email"""
-        # приведение к нижнему регистру
-        email = self.cleaned_data['email'].lower()
-        
-        # проверка использования почты другим пользователем
-        if User.objects.filter(email=email).exclude(personnel_number=self.personnel_number).exists():
-            raise ValidationError('Указанный адрес уже используется другим сотрудником')
-        
-        return email
-    # валидация пароля
     def clean_password1(self):
         password = self.cleaned_data.get('password1')
         if password:
@@ -161,53 +100,30 @@ class RegistrationForm(forms.ModelForm):
                 raise ValidationError(
                     'Пароль должен содержать минимум 8 символов, включать латинские буквы '
                     'в разных регистрах, цифру и специальный символ'
-                ) 
+                )
         return password
-    # проверка совпадения паролей
+    
     def clean(self):
-        cleaned_data = super().clean() # вызов родительского метода
+        cleaned_data = super().clean()
         password1 = cleaned_data.get('password1')
         password2 = cleaned_data.get('password2')
         
         if password1 and password2 and password1 != password2:
-            # при несовпадении ошибка на второй введенный пароль
             raise ValidationError({'password2': 'Пароли не совпадают'})
         
         return cleaned_data
-    # сохранение (обновление) данных пользователя после регистрации
-    def save(self, commit=True):
-        # поиск пользователя по табельному номеру
-        try:
-            user = User.objects.get(personnel_number=self.personnel_number)
-        except User.DoesNotExist:
-            raise ValidationError('Сотрудник с таким табельным номером не найден')
+    
+    def save(self):
+        """Установление пароля и завершение регистрации"""
+        if not self.user:
+            raise ValidationError('Пользователь не найден')
         
-        # проверка завершения регистрации
-        if not user.is_pre_registered:
-            raise ValidationError('Регистрация для данного сотрудника уже завершена')
+        self.user.set_password(self.cleaned_data['password1'])
+        self.user.is_pre_registered = False
+        self.user.is_verified = True
+        self.user.save()
         
-        # обновление данных пользователя
-        user.email = self.cleaned_data['email']
-        user.last_name = self.cleaned_data['last_name']
-        user.first_name = self.cleaned_data['first_name']
-        user.middle_name = self.cleaned_data['middle_name']
-        user.position = self.cleaned_data['position']
-        user.set_password(self.cleaned_data['password1']) # хэширование пароля
-        user.is_pre_registered = False  # изменение флага завершения регистрации
-        
-        # Устанавливаем роль по умолчанию (кредитный менеджер), если не установлена
-        if not user.role:
-            from .models import Role
-            default_role, created = Role.objects.get_or_create(
-                name='credit_manager',
-                defaults={'description': 'Кредитный менеджер'}
-            )
-            user.role = default_role
-        
-        if commit:
-            user.save()
-        
-        return user
+        return self.user
 
 # кастомная смена пароля с его валидацией   
 class CustomPasswordChangeForm(PasswordChangeForm):

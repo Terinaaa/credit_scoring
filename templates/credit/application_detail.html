@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Детали заявки {{ application.app_num }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h4>Заявка №{{ application.app_num }}</h4>
+            <p class="mb-0">Клиент: {{ application.client.get_full_name }}</p>
+        </div>
+        <div class="card-body">
+            
+            <!-- Кнопка оценки (если еще не оценивалась) -->
+            {% if not application.scoring_date %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Заявка еще не оценена. Нажмите кнопку для проведения скоринга.
+                </div>
+                <div class="text-center mb-4">
+                    <a href="{% url 'credit:application_score' application.pk %}" 
+                       class="btn btn-primary btn-lg">
+                        <i class="fas fa-chart-line me-2"></i>Оценить кредитоспособность
+                    </a>
+                </div>
+            {% else %}
+                <!-- Результаты скоринга -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card mb-3">
+                            <div class="card-header bg-success text-white">
+                                <h5>Результаты скоринга</h5>
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-borderless">
+                                    <tr>
+                                        <th>Скоринговый балл:</th>
+                                        <td><strong>{{ application.scoring_score }}</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Вероятность дефолта:</th>
+                                        <td><strong>{{ application.probability_default|floatformat:2 }}%</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Решение системы:</th>
+                                        <td>
+                                            <span class="badge {% if application.system_decision.decision == 'AUTO_APPROVE' %}bg-success{% elif application.system_decision.decision == 'AUTO_REJECT' %}bg-danger{% else %}bg-warning{% endif %}">
+                                                {{ application.system_decision.decision }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>Категория риска:</th>
+                                        <td>{{ application.risk_category.category }} - {{ application.risk_category.description }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Дата оценки:</th>
+                                        <td>{{ application.scoring_date|date:"d.m.Y H:i" }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="card mb-3">
+                            <div class="card-header bg-info text-white">
+                                <h5>Ключевые факторы</h5>
+                            </div>
+                            <div class="card-body">
+                                {% if application.scoring_factors %}
+                                    <ul class="list-group">
+                                        {% for factor in application.scoring_factors %}
+                                            <li class="list-group-item">
+                                                <strong>{{ factor.feature_ru }}</strong>
+                                                <span class="float-end {% if factor.direction == 'повышает риск' %}text-danger{% else %}text-success{% endif %}">
+                                                    {{ factor.direction }}
+                                                </span>
+                                                <br>
+                                                <small class="text-muted">Значение: {{ factor.value }}</small>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                {% else %}
+                                    <p class="text-muted">Нет данных о факторах</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            
+            <!-- Данные клиента -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5>Данные клиента</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>ФИО:</strong> {{ application.client.get_full_name }}</p>
+                            <p><strong>Паспорт:</strong> {{ application.client.get_passport }}</p>
+                            <p><strong>Дата рождения:</strong> {{ application.client.birth_date|date:"d.m.Y" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Телефон:</strong> {{ application.client.phone_num }}</p>
+                            <p><strong>Email:</strong> {{ application.client.email }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Параметры заявки -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5>Параметры заявки</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Сумма кредита:</strong> {{ application.loan_amount|floatformat:0 }} ₽</p>
+                            <p><strong>Срок кредита:</strong> {{ application.loan_term_months }} месяцев</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Статус:</strong> {{ application.status.type }}</p>
+                            <p><strong>Дата создания:</strong> {{ application.created_at|date:"d.m.Y H:i" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-4">
+                <a href="{% url 'credit:client_applications' application.client.pk %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>К списку заявок
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

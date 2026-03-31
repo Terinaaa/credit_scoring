@@ -1,0 +1,338 @@
+/* ========== ОСНОВНОЙ КОНТЕЙНЕР ========== */
+.container_mt-4 {
+    max-width: 1000px;
+    margin: 0 auto;
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    display: flex;              /* Добавляем flex */
+    flex-direction: column;     /* Вертикальное расположение */
+    align-items: center;        /* Центрируем дочерние элементы по горизонтали */
+}
+
+/* ========== КАРТОЧКА ПОИСКА (белый фон, как у результатов) ========== */
+.search-card {
+    background: white;                    /* Белый фон вместо градиента */
+    border-radius: 15px;
+    padding: 25px;
+    margin-bottom: 30px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.05);  /* Та же тень, что у результатов */
+    border: 1px solid rgba(0,0,0,0.05);
+    width: 50%;
+    min-width: 400px;           /* Минимальная ширина для читаемости */
+    margin-left: auto;          /* Автоотступы слева */
+    margin-right: auto;         /* Автоотступы справа */
+}
+
+
+.search-card .form-control {
+    background: #f8f9fa;                   /* Светло-серый фон */
+    border: 2px solid #e9ecef;              /* Серая рамка */
+    border-radius: 10px;
+    padding: 12px;
+    transition: all 0.3s;
+    width: 100% !important;
+    display: block;                 /* Блочный элемент */
+    box-sizing: border-box; 
+}
+
+.search-card .form-control:focus {
+    background: white;
+    border-color: #667eea;                  /* Синяя рамка при фокусе */
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+    transform: translateY(-2px);
+}
+
+/* Стиль для контейнера с кнопками */
+.search-card .d-flex.gap-2 {
+    width: 100%;
+    display: flex;
+    align-items: stretch;  /* Растягивает дочерние элементы на всю высоту */
+    justify-content: center;     /* Центрирует кнопки по горизонтали */
+    gap: 15px;                    /* Отступ между кнопками */
+    margin-top: 25px;   
+}
+
+/* Стиль для обеих кнопок - базовые стили */
+.search-card .btn-search,
+.search-card .btn-reset {
+    flex: 1 1 auto;           /* Обе кнопки занимают равное пространство */
+    max-width: 200px;      /* Оптимальная максимальная ширина */
+    height: 48px;          /* Фиксированная высота для обеих кнопок */
+    margin: 0;             /* Убираем все отступы */
+    padding: 12px 15px;    /* Одинаковые внутренние отступы */
+    font-weight: 600;
+    font-size: 14px;       /* Одинаковый размер шрифта */
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: none;
+    border-radius: 10px;
+    box-sizing: border-box;  /* padding включается в ширину */
+    line-height: 1;          /* Фиксированная высота строки */
+}
+
+/* Кнопка "Найти" (градиентная) */
+.search-card .btn-search {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.search-card .btn-search:hover {
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+/* Кнопка "Сбросить" (серая) */
+.search-card .btn-reset {
+    background: #6c757d;
+    color: white !important;
+    text-decoration: none;
+}
+
+.search-card .btn-reset:hover {
+    background: #5a6268;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(108, 117, 125, 0.4);
+    color: white !important;
+    text-decoration: none;
+}
+
+/* Иконки в кнопках */
+.search-card .btn-search i,
+.search-card .btn-reset i {
+    font-size: 16px;  /* Одинаковый размер иконок */
+}
+/* ========== КАРТОЧКА СО СТАТИСТИКОЙ ========== */
+.stats-card {
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 25px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.stats-badge {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 8px 20px;
+    border-radius: 25px;
+    font-weight: 600;
+    font-size: 1.1em;
+}
+
+/* ========== КОНТЕЙНЕР ТАБЛИЦЫ ========== */
+.table-container {
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+    overflow-x: auto;
+}
+
+.table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 8px;
+}
+
+.table thead th {
+    background: #f8f9fa;
+    color: #2c3e50;
+    font-weight: 600;
+    padding: 15px;
+    border: none;
+    font-size: 0.95em;
+}
+
+.table tbody tr {
+    background: white;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+    transition: all 0.3s;
+    border-radius: 10px;
+}
+
+.table tbody tr:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(102, 126, 234, 0.15);
+}
+
+.table tbody td {
+    padding: 15px;
+    border: none;
+    vertical-align: middle;
+}
+
+.table tbody td:first-child {
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+}
+
+.table tbody td:last-child {
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+}
+
+/* ========== КНОПКИ ДЕЙСТВИЙ В ТАБЛИЦЕ ========== */
+.btn-action {
+    padding: 8px 12px;
+    border-radius: 8px;
+    margin: 0 3px;
+    font-size: 0.9em;
+    transition: all 0.3s;
+}
+
+.btn-action:hover {
+    transform: translateY(-2px);
+}
+
+.btn-view {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.btn-edit {
+    background: #fff3e0;
+    color: #f57c00;
+}
+
+.btn-delete {
+    background: #ffebee;
+    color: #d32f2f;
+}
+
+/* ========== ПУСТОЕ СОСТОЯНИЕ ========== */
+.empty-state {
+    text-align: center;
+    padding: 50px;
+    color: #6c757d;
+}
+
+.empty-state i {
+    font-size: 4em;
+    margin-bottom: 20px;
+    color: #dee2e6;
+}
+
+/* ========== ПАГИНАЦИЯ ========== */
+.pagination {
+    margin-top: 25px;
+    justify-content: center;
+}
+
+.page-link {
+    border: none;
+    padding: 10px 15px;
+    margin: 0 3px;
+    border-radius: 10px;
+    color: #667eea;
+    transition: all 0.3s;
+}
+
+.page-link:hover {
+    background: #667eea;
+    color: white;
+    transform: translateY(-2px);
+}
+
+.page-item.active .page-link {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+/* ========== ЗАГОЛОВОК С КНОПКОЙ ДОБАВЛЕНИЯ ========== */
+.header-actions {
+    display: flex;
+    justify-content: flex-end;    /* Кнопка справа */
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+/* ========== КНОПКА "ДОБАВИТЬ КЛИЕНТА" ========== */
+a.btn-add-client,
+button.btn-add-client,
+.btn-add-client {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 10px !important;
+    padding: 12px 25px !important;
+    font-weight: 600 !important;
+    transition: all 0.3s !important;
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    text-decoration: none !important;
+}
+
+a.btn-add-client:hover,
+button.btn-add-client:hover,
+.btn-add-client:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4) !important;
+    color: white !important;
+}
+
+.btn-add-client i {
+    font-size: 1.2em;
+}
+
+/* ========== КОНТЕЙНЕР РЕЗУЛЬТАТОВ ПОИСКА ========== */
+.search-results-container {
+    margin-top: 30px;
+    transition: all 0.3s ease;
+}
+
+.search-info {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 15px 20px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.search-query {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.search-query span {
+    color: #667eea;
+    background: #e9ecef;
+    padding: 5px 10px;
+    border-radius: 5px;
+    margin-left: 10px;
+}
+
+.no-results {
+    text-align: center;
+    padding: 60px 20px;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+}
+
+.no-results i {
+    font-size: 4em;
+    color: #dee2e6;
+    margin-bottom: 20px;
+}
+
+.no-results h4 {
+    color: #2c3e50;
+    margin-bottom: 10px;
+}
+
+.no-results p {
+    color: #6c757d;
+}

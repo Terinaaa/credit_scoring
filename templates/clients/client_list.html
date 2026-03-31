@@ -1,0 +1,188 @@
+<!-- templates/clients/client_list.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Поиск клиентов{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/client_style.css' %}">
+{% endblock %}
+{% block page_title %}Поиск клиента{% endblock %}
+{% block content %}
+<div class="container-fluid px-4">
+    <!-- Кнопка добавления клиента -->
+    <div class="header-actions">
+        <a href="{% url 'clients:client_add' %}" class="btn-add-client">
+            <i class="fas fa-plus-circle"></i> Добавить клиента
+        </a>
+    </div>
+
+    <!-- Карточка поиска -->
+    <div class="search-card">
+        <form method="get" action="{% url 'clients:client_list' %}" class="row g-3 align-items-end">
+            <div class="col-md-5">
+                <label for="{{ search_form.doc_series.id_for_label }}" class="form-label">Серия паспорта РФ</label>
+                {{ search_form.doc_series }}
+            </div>
+            <div class="col-md-5">
+                <label for="{{ search_form.doc_number.id_for_label }}" class="form-label">Номер паспорта РФ</label>
+                {{ search_form.doc_number }}
+            </div>
+            <div class="col-md-2">
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn-search flex-grow-1">
+                        <i class="fas fa-search me-2"></i>Найти
+                    </button>
+                    <a class="btn-reset" href="{% url 'clients:client_list' %}" >
+                        <i class="fas fa-times"></i>Сбросить
+                    </a>
+                </div>
+            </div>
+        </form>
+        {% if search_form.errors %}
+            <div class="alert alert-danger mt-3">
+                {{ search_form.errors }}
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Результаты поиска (появляются только если был выполнен поиск) -->
+    {% if request.GET.doc_series or request.GET.doc_number %}
+        <div class="search-results-container">
+            <div class="search-info">
+                <div class="search-query">
+                    Результаты поиска по паспорту: 
+                    <span>{{ request.GET.doc_series|default:"—" }} {{ request.GET.doc_number|default:"—" }}</span>
+                </div>
+            </div>
+
+            <!-- Таблица результатов -->
+            <div class="table-container">
+                {% if page_obj %}
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-user me-2"></i>ФИО</th>
+                            <th><i class="fas fa-passport me-2"></i>Паспорт РФ</th>
+                            <th><i class="fas fa-calendar me-2"></i>Дата рождения</th>
+                            <th><i class="fas fa-phone me-2"></i>Телефон</th>
+                            <th><i class="fas fa-envelope me-2"></i>Email</th>
+                            <th><i class="fas fa-cog me-2"></i>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for client in page_obj %}
+                        <tr>
+                            <td>
+                                <strong>{{ client.get_full_name }}</strong>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark p-2">
+                                    {{ client.get_passport }}
+                                </span>
+                            </td>
+                            <td>{{ client.birth_date|date:"d.m.Y" }}</td>
+                            <td>
+                                <a href="tel:{{ client.phone_num }}" style="color: #667eea; text-decoration: none;">
+                                    {{ client.phone_num }}
+                                </a>
+                            </td>
+                            <td>
+                                <a href="mailto:{{ client.email }}" style="color: #667eea; text-decoration: none;">
+                                    {{ client.email }}
+                                </a>
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <!-- Кнопка просмотра заявок (скорингов) -->
+                                    <a href="{% url 'credit:client_applications' client.pk %}" 
+                                        class="btn-action btn-view" title="Просмотр заявок">
+                                        <i class="fas fa-list"></i>Заявки
+                                    </a>
+                                    
+                                    <!-- Кнопка просмотра данных клиента (будет реализовано позже) -->
+                                    <a href="#" 
+                                    class="btn-action btn-info" title="Просмотр данных">
+                                        <i class="fas fa-list"></i>Просмотр данных
+                                    </a>
+                                    
+                                    <!-- Кнопка изменения данных клиента -->
+                                    <a href="{% url 'clients:client_edit' client.pk %}"
+                                    class="btn-action btn-edit" title="Изменить">
+                                        <i class="fas fa-edit"></i>Изменить
+                                    </a>
+                                    
+                                    <!-- Кнопка удаления клиента -->
+                                    <a href="{% url 'clients:client_delete' client.pk %}"
+                                    class="btn-action btn-delete" title="Удалить">
+                                        <i class="fas fa-trash"></i>Удалить
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="no-results">
+                    <i class="fas fa-search"></i>
+                    <h4>Клиенты не найдены</h4>
+                    <p class="text-muted">По вашему запросу "{{ request.GET.doc_series }} {{ request.GET.doc_number }}" ничего не найдено</p>
+                    <a href="{% url 'clients:client_add' %}" class="btn-add-client mt-3" style="display: inline-block;">
+                        <i class="fas fa-plus-circle me-2"></i>Добавить нового клиента
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Пагинация (только если есть результаты) -->
+            {% if page_obj.has_other_pages %}
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}&doc_series={{ request.GET.doc_series }}&doc_number={{ request.GET.doc_number }}">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}&doc_series={{ request.GET.doc_series }}&doc_number={{ request.GET.doc_number }}">
+                                {{ num }}
+                            </a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}&doc_series={{ request.GET.doc_series }}&doc_number={{ request.GET.doc_number }}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://kit.fontawesome.com/your-fontawesome-kit.js" crossorigin="anonymous"></script>
+<script>
+    // Автофокус на поле серии при загрузке страницы
+    document.addEventListener('DOMContentLoaded', function() {
+        const seriesField = document.getElementById('{{ search_form.doc_series.id_for_label }}');
+        if (seriesField) {
+            seriesField.focus();
+        }
+    });
+</script>
+{% endblock %}

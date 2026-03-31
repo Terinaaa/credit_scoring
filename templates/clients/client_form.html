@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/client_style.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container_mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4>{{ title }}</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <!-- Паспортные данные -->
+                        <h6 class="mt-3">Паспортные данные</h6>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.doc_series.id_for_label }}" class="form-label">Серия</label>
+                                {{ form.doc_series }}
+                                {% if form.doc_series.errors %}
+                                    <div class="text-danger">{{ form.doc_series.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.doc_number.id_for_label }}" class="form-label">Номер</label>
+                                {{ form.doc_number }}
+                                {% if form.doc_number.errors %}
+                                    <div class="text-danger">{{ form.doc_number.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- ФИО -->
+                        <h6 class="mt-3">ФИО</h6>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.last_name.id_for_label }}" class="form-label">Фамилия</label>
+                                {{ form.last_name }}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.first_name.id_for_label }}" class="form-label">Имя</label>
+                                {{ form.first_name }}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.middle_name.id_for_label }}" class="form-label">Отчество</label>
+                                {{ form.middle_name }}
+                            </div>
+                        </div>
+
+                        <!-- Контакты -->
+                        <h6 class="mt-3">Контакты</h6>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.birth_date.id_for_label }}" class="form-label">Дата рождения</label>
+                                {{ form.birth_date }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
+                                {{ form.email }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.phone_num.id_for_label }}" class="form-label">Телефон</label>
+                                {{ form.phone_num }}
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <a href="{% url 'clients:client_list' %}" class="btn btn-secondary me-md-2">
+                                Отмена
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                Сохранить
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

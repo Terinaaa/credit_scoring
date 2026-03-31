@@ -1,0 +1,461 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Создание кредитной заявки{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-container {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+    
+    .client-info-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    
+    .client-info-card h5 {
+        margin-bottom: 15px;
+        font-weight: 600;
+    }
+    
+    .client-info-item {
+        display: flex;
+        margin-bottom: 10px;
+        align-items: center;
+    }
+    
+    .client-info-label {
+        width: 120px;
+        opacity: 0.9;
+    }
+    
+    .client-info-value {
+        font-weight: 600;
+    }
+    
+    .form-section {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 25px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+    
+    .form-section h5 {
+        color: #2c3e50;
+        margin-bottom: 20px;
+        font-weight: 600;
+        border-bottom: 2px solid #f0f0f0;
+        padding-bottom: 10px;
+    }
+    
+    .form-section h5 i {
+        color: #667eea;
+        margin-right: 10px;
+    }
+    
+    .form-section h6 {
+        color: #495057;
+        margin: 15px 0 15px;
+        font-weight: 600;
+        font-size: 1em;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-label {
+        font-weight: 500;
+        color: #495057;
+        margin-bottom: 8px;
+        display: block;
+    }
+    
+    .form-control {
+        background: #f8f9fa;
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        padding: 12px;
+        transition: all 0.3s;
+        width: 100%;
+    }
+    
+    .form-control:focus {
+        background: white;
+        border-color: #667eea;
+        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        transform: translateY(-2px);
+    }
+    
+    select.form-control {
+        cursor: pointer;
+    }
+    
+    .is-invalid {
+        border-color: #dc3545 !important;
+        background-color: #fff8f8 !important;
+    }
+    
+    .invalid-feedback {
+        color: #dc3545;
+        font-size: 0.875em;
+        margin-top: 5px;
+        display: block;
+    }
+    
+    .alert {
+        padding: 15px 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+    
+    .alert-danger {
+        background-color: #f8d7da;
+        border: 1px solid #f5c6cb;
+        color: #721c24;
+    }
+    
+    .alert-success {
+        background-color: #d4edda;
+        border: 1px solid #c3e6cb;
+        color: #155724;
+    }
+    
+    .row-fields {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+    }
+    
+    .btn-submit {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 15px 30px;
+        font-weight: 600;
+        transition: all 0.3s;
+        width: 100%;
+        font-size: 1.1em;
+    }
+    
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    }
+    
+    .btn-cancel {
+        background: #f8f9fa;
+        color: #6c757d;
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        padding: 15px 30px;
+        font-weight: 600;
+        transition: all 0.3s;
+        width: 100%;
+        text-align: center;
+        text-decoration: none;
+        display: block;
+    }
+    
+    .btn-cancel:hover {
+        background: #e9ecef;
+        transform: translateY(-2px);
+        color: #6c757d;
+    }
+    
+    .required-field::after {
+        content: " *";
+        color: #dc3545;
+    }
+    
+    .help-text {
+        font-size: 0.8em;
+        color: #6c757d;
+        margin-top: 5px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="form-container">
+        
+        <!-- Сообщения Django -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        <!-- Общие ошибки формы -->
+        {% if scoring_form.non_field_errors %}
+            <div class="alert alert-danger">
+                {{ scoring_form.non_field_errors }}
+            </div>
+        {% endif %}
+        {% if application_form.non_field_errors %}
+            <div class="alert alert-danger">
+                {{ application_form.non_field_errors }}
+            </div>
+        {% endif %}
+        
+        <!-- Информация о клиенте -->
+        <div class="client-info-card">
+            <h5><i class="fas fa-user-circle me-2"></i>Клиент: {{ client.get_full_name }}</h5>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="client-info-item">
+                        <span class="client-info-label">Паспорт:</span>
+                        <span class="client-info-value">{{ client.get_passport }}</span>
+                    </div>
+                    <div class="client-info-item">
+                        <span class="client-info-label">Телефон:</span>
+                        <span class="client-info-value">{{ client.phone_num }}</span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="client-info-item">
+                        <span class="client-info-label">Email:</span>
+                        <span class="client-info-value">{{ client.email }}</span>
+                    </div>
+                    <div class="client-info-item">
+                        <span class="client-info-label">Дата рождения:</span>
+                        <span class="client-info-value">{{ client.birth_date|date:"d.m.Y" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+            
+            <!-- ==================== 1. Платежеспособность ==================== -->
+            <div class="form-section">
+                <h5><i class="fas fa-chart-line me-2"></i>1. Платежеспособность</h5>
+                <div class="row-fields">
+                    <div class="form-group">
+                        <label class="form-label required-field">{{ scoring_form.loan_amnt.label }}</label>
+                        {{ scoring_form.loan_amnt }}
+                        {% if scoring_form.loan_amnt.errors %}
+                            <div class="invalid-feedback">{{ scoring_form.loan_amnt.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label required-field">{{ scoring_form.installment.label }}</label>
+                        {{ scoring_form.installment }}
+                        {% if scoring_form.installment.errors %}
+                            <div class="invalid-feedback">{{ scoring_form.installment.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label required-field">{{ scoring_form.annual_inc.label }}</label>
+                        {{ scoring_form.annual_inc }}
+                        {% if scoring_form.annual_inc.errors %}
+                            <div class="invalid-feedback">{{ scoring_form.annual_inc.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">{{ scoring_form.dti.label }}</label>
+                        {{ scoring_form.dti }}
+                        {% if scoring_form.dti.errors %}
+                            <div class="invalid-feedback">{{ scoring_form.dti.errors }}</div>
+                        {% endif %}
+                        <div class="help-text">Отношение ежемесячных платежей по долгам к доходу</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- ==================== 2. Кредитная дисциплина ==================== -->
+            <div class="form-section">
+                <h5><i class="fas fa-shield-alt me-2"></i>2. Кредитная дисциплина</h5>
+                <div class="row-fields">
+                    <div class="form-group">
+                        <label class="form-label">{{ scoring_form.delinq_2yrs.label }}</label>
+                        {{ scoring_form.delinq_2yrs }}
+                        {% if scoring_form.delinq_2yrs.errors %}
+                            <div class="invalid-feedback">{{ scoring_form.delinq_2yrs.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">{{ scoring_form.acc_now_delinq.label }}</label>
+                        {{ scoring_form.acc_now_delinq }}
+                        {% if scoring_form.acc_now_delinq.errors %}
+                            <div class="invalid-feedback">{{ scoring_form.acc_now_delinq.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">{{ scoring_form.pub_rec.label }}</label>
+                        {{ scoring_form.pub_rec }}
+                        {% if scoring_form.pub_rec.errors %}
+                            <div class="invalid-feedback">{{ scoring_form.pub_rec.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">{{ scoring_form.pub_rec_bankruptcies.label }}</label>
+                        {{ scoring_form.pub_rec_bankruptcies }}
+                        {% if scoring_form.pub_rec_bankruptcies.errors %}
+                            <div class="invalid-feedback">{{ scoring_form.pub_rec_bankruptcies.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">{{ scoring_form.collections_12_mths_ex_med.label }}</label>
+                        {{ scoring_form.collections_12_mths_ex_med }}
+                        {% if scoring_form.collections_12_mths_ex_med.errors %}
+                            <div class="invalid-feedback">{{ scoring_form.collections_12_mths_ex_med.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- ==================== 3. Кредитная нагрузка ==================== -->
+            <div class="form-section">
+                <h5><i class="fas fa-chart-pie me-2"></i>3. Кредитная нагрузка</h5>
+                <div class="row-fields">
+                    <div class="form-group">
+                        <label class="form-label">{{ scoring_form.revol_util.label }}</label>
+                        {{ scoring_form.revol_util }}
+                        {% if scoring_form.revol_util.errors %}
+                            <div class="invalid-feedback">{{ scoring_form.revol_util.errors }}</div>
+                        {% endif %}
+                        <div class="help-text">Процент использования revolving кредитов</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">{{ scoring_form.bc_util.label }}</label>
+                        {{ scoring_form.bc_util }}
+                        {% if scoring_form.bc_util.errors %}
+                            <div class="invalid-feedback">{{ scoring_form.bc_util.errors }}</div>
+                        {% endif %}
+                        <div class="help-text">Процент использования кредитных карт</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">{{ scoring_form.total_bal_ex_mort.label }}</label>
+                        {{ scoring_form.total_bal_ex_mort }}
+                        {% if scoring_form.total_bal_ex_mort.errors %}
+                            <div class="invalid-feedback">{{ scoring_form.total_bal_ex_mort.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">{{ scoring_form.total_acc.label }}</label>
+                        {{ scoring_form.total_acc }}
+                        {% if scoring_form.total_acc.errors %}
+                            <div class="invalid-feedback">{{ scoring_form.total_acc.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">{{ scoring_form.tot_hi_cred_lim.label }}</label>
+                        {{ scoring_form.tot_hi_cred_lim }}
+                        {% if scoring_form.tot_hi_cred_lim.errors %}
+                            <div class="invalid-feedback">{{ scoring_form.tot_hi_cred_lim.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- ==================== 4. Стабильность ==================== -->
+            <div class="form-section">
+                <h5><i class="fas fa-home me-2"></i>4. Стабильность</h5>
+                <div class="row-fields">
+                    <div class="form-group">
+                        <label class="form-label">{{ scoring_form.emp_length.label }}</label>
+                        {{ scoring_form.emp_length }}
+                        {% if scoring_form.emp_length.errors %}
+                            <div class="invalid-feedback">{{ scoring_form.emp_length.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">{{ scoring_form.home_ownership.label }}</label>
+                        {{ scoring_form.home_ownership }}
+                        {% if scoring_form.home_ownership.errors %}
+                            <div class="invalid-feedback">{{ scoring_form.home_ownership.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">{{ scoring_form.earliest_cr_line.label }}</label>
+                        {{ scoring_form.earliest_cr_line }}
+                        {% if scoring_form.earliest_cr_line.errors %}
+                            <div class="invalid-feedback">{{ scoring_form.earliest_cr_line.errors }}</div>
+                        {% endif %}
+                        <div class="help-text">Дата открытия первого кредита (например: 2015-03-15)</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- ==================== 5. Поведенческий риск ==================== -->
+            <div class="form-section">
+                <h5><i class="fas fa-chart-line me-2"></i>5. Поведенческий риск</h5>
+                <div class="row-fields">
+                    <div class="form-group">
+                        <label class="form-label">{{ scoring_form.inq_last_6mths.label }}</label>
+                        {{ scoring_form.inq_last_6mths }}
+                        {% if scoring_form.inq_last_6mths.errors %}
+                            <div class="invalid-feedback">{{ scoring_form.inq_last_6mths.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">{{ scoring_form.mths_since_recent_inq.label }}</label>
+                        {{ scoring_form.mths_since_recent_inq }}
+                        {% if scoring_form.mths_since_recent_inq.errors %}
+                            <div class="invalid-feedback">{{ scoring_form.mths_since_recent_inq.errors }}</div>
+                        {% endif %}
+                        <div class="help-text">Месяцев с момента последнего запроса в БКИ</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">{{ scoring_form.percent_bc_gt_75.label }}</label>
+                        {{ scoring_form.percent_bc_gt_75 }}
+                        {% if scoring_form.percent_bc_gt_75.errors %}
+                            <div class="invalid-feedback">{{ scoring_form.percent_bc_gt_75.errors }}</div>
+                        {% endif %}
+                        <div class="help-text">Процент карт с utilization выше 75%</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- ==================== Параметры кредита ==================== -->
+            <div class="form-section">
+                <h5><i class="fas fa-credit-card me-2"></i>Параметры кредита</h5>
+                <div class="row-fields">
+                    <div class="form-group">
+                        <label class="form-label required-field">{{ application_form.loan_amount.label }}</label>
+                        {{ application_form.loan_amount }}
+                        {% if application_form.loan_amount.errors %}
+                            <div class="invalid-feedback">{{ application_form.loan_amount.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label required-field">{{ application_form.loan_term_months.label }}</label>
+                        {{ application_form.loan_term_months }}
+                        {% if application_form.loan_term_months.errors %}
+                            <div class="invalid-feedback">{{ application_form.loan_term_months.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Кнопки -->
+            <div class="row mt-4">
+                <div class="col-md-6 mb-3">
+                    <a href="{% url 'credit:client_applications' client.pk %}" class="btn-cancel">
+                        <i class="fas fa-times me-2"></i>Отмена
+                    </a>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <button type="submit" class="btn-submit">
+                        <i class="fas fa-save me-2"></i>Создать заявку
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

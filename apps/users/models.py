@@ -163,7 +163,7 @@ class User(AbstractUser):
     @property
     def is_staff_property(self):
         # возвращает True только для административных ролей.
-        # не сохраняется в базу данных, вычисляется "на лету"
+        # не сохраняется в базу данных
         if hasattr(self, 'role') and self.role:
             return self.role.name in ['system_admin', 'db_admin']
         return False

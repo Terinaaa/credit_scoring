@@ -1,10 +1,10 @@
 # apps/users/utils.py
-# меню по ролям пользователей
 def get_menu_by_role(role_name):
     # общий элемент меню для всех пользователей
     base_menu = [
         {'url': '/', 'icon': '🏠', 'text': 'Главная'}
     ]
+    
     # пункты меню в зависимости от роли пользователя
     role_menus = {
         None: [
@@ -21,12 +21,16 @@ def get_menu_by_role(role_name):
             {'url': '/reports/', 'icon': '📈', 'text': 'Отчетность'}
         ],
         'db_admin': [
-            {'url': '/scoring/', 'icon': '📊', 'text': 'Оценка кредитоспособности'},
-            {'url': '/clients/', 'icon': '👤', 'text': 'Данные по клиенту'},
-            {'url': '/reports/', 'icon': '📈', 'text': 'Отчетность'}
+            {'url': '/admin/auth/user/', 'icon': '👥', 'text': 'Управление пользователями'},  # Конкретный URL
+            {'url': '/admin/scoring/employmenttype/', 'icon': '💼', 'text': 'Типы занятости'},
+            {'url': '/admin/scoring/applicationstatus/', 'icon': '📊', 'text': 'Статусы заявок'},
+            {'url': '/admin/scoring/systemdecision/', 'icon': '⚖️', 'text': 'Решения системы'},
+            {'url': '/admin/scoring/riskcategory/', 'icon': '⚠️', 'text': 'Категории риска'},
+            {'url': '/clients/', 'icon': '👤', 'text': 'Клиенты'},
         ],
         'system_admin': [
-            {'url': '/admin/', 'icon': '📈', 'text': 'Панель управления'}
+            {'url': '/admin/', 'icon': '⚙️', 'text': 'Панель управления'},
+            {'url': '/system-admin/', 'icon': '🔧', 'text': 'Управление системой'}
         ]
     }
     

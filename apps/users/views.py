@@ -88,17 +88,14 @@ def registration_start_view(request):
 
 # второй шаг регистрации
 def registration_complete_view(request):
-    # если пользователь авторизован, редирект на главную
     if request.user.is_authenticated:
         return redirect('index')
-   # проверка, есть ли в сессии табельный номер. Если пользователь попытается зайти на эту страницу напрямую (через URL),
-   # его выкинет обратно на первый шаг
+    
     personnel_number = request.session.get('registration_personnel_number')
     if not personnel_number:
         messages.error(request, 'Сначала введите табельный номер')
         return redirect('registration_start')
     
-    # проверка наличия сотрудника и незавершенной регистрации
     try:
         user = User.objects.get(personnel_number=personnel_number)
         if not user.is_pre_registered:
@@ -107,44 +104,26 @@ def registration_complete_view(request):
     except User.DoesNotExist:
         messages.error(request, 'Сотрудник не найден')
         return redirect('registration_start')
-    # получение списка должностей из БД для выпадающего списка
-    positions = EmployeePosition.objects.all().order_by('name')
     
     if request.method == 'POST':
-        # создание формы и передача в нее табельного
-        form = RegistrationForm(request.POST, personnel_number=personnel_number)
+        form = RegistrationForm(request.POST, user=user)
         if form.is_valid():
-            # обновление данных пользователя в БД
-            user = form.save()
-            # очистка сессии
+            form.save()
+            # Очистка сессии
             if 'registration_personnel_number' in request.session:
                 del request.session['registration_personnel_number']
-            # автоматическая аутентификация после регистрации
-            login(request, user)
-            # сообщение об успешном завершении регистрации
-            messages.success(request, 
-                'Регистрация прошла успешно! Добро пожаловать в систему.')
+            
+            # Автоматический вход
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+            messages.success(request, 'Регистрация успешно завершена!')
             return redirect('index')
     else:
-        # предзаполнение формы, если есть некоторые данные пользователя в БД
-        initial_data = {}
-        if user.first_name:
-            initial_data['first_name'] = user.first_name
-        if user.last_name:
-            initial_data['last_name'] = user.last_name
-        if user.middle_name:
-            initial_data['middle_name'] = user.middle_name
-        if user.email:
-            initial_data['email'] = user.email
-        if user.position:
-            initial_data['position'] = user.position
-        
-        form = RegistrationForm(initial=initial_data, personnel_number=personnel_number)
+        form = RegistrationForm(user=user)
     
+    # Показываем пользователю его данные для подтверждения
     return render(request, 'users/registration_complete.html', {
         'form': form,
-        'positions': positions,
-        'personnel_number': personnel_number
+        'user_data': user  # передаем данные пользователя для отображения
     })
 # декоратор для проверки аутентификации
 @login_required

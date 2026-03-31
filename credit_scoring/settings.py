@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'apps.scoring',
     'apps.reports',
     'apps.clients',
+    'apps.credit',
 ]
 
 AUTH_USER_MODEL = 'users.User'
