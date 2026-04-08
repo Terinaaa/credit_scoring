@@ -163,6 +163,102 @@ def predict_application(application):
         raise
 
 
+# apps/credit/ml_scoring.py
+
 def get_shap_factors(application, top_n=5):
-    """SHAP временно отключен"""
-    return []
+    """
+    Получает ключевые факторы, повлиявшие на решение
+    """
+    try:
+        # Импортируем shap (если не установлен - возвращаем заглушку)
+        try:
+            import shap
+        except ImportError:
+            print("SHAP не установлен")
+            return []
+        
+        model, feature_names = load_models()
+        
+        # Получаем данные клиента
+        client_data = application.client_data
+        
+        # Предобработка данных
+        df = preprocess_for_scoring(client_data)
+        
+        # Убеждаемся, что все признаки есть
+        for feature in feature_names:
+            if feature not in df.columns:
+                df[feature] = 0
+        
+        df = df[feature_names]
+        
+        # Создаем объяснитель
+        explainer = shap.TreeExplainer(model)
+        
+        # Получаем SHAP значения
+        shap_values = explainer.shap_values(df)[0]
+        
+        # Словарь для понятных названий признаков
+        feature_names_ru = {
+            'loan_amnt': 'Сумма кредита',
+            'installment': 'Ежемесячный платеж',
+            'annual_inc': 'Годовой доход',
+            'dti': 'Долговая нагрузка (DTI)',
+            'delinq_2yrs': 'Просрочки за 2 года',
+            'acc_now_delinq': 'Текущие просрочки',
+            'pub_rec': 'Публичные записи',
+            'pub_rec_bankruptcies': 'Банкротства',
+            'collections_12_mths_ex_med': 'Взыскания за 12 мес',
+            'revol_util': 'Использование revolving лимита',
+            'bc_util': 'Использование карт',
+            'total_bal_ex_mort': 'Общий долг без ипотеки',
+            'total_acc': 'Всего кредитов',
+            'tot_hi_cred_lim': 'Общий кредитный лимит',
+            'emp_length': 'Стаж работы',
+            'home_ownership_encoded': 'Тип жилья',
+            'credit_history_years': 'Возраст кредитной истории',
+            'inq_last_6mths': 'Запросы в БКИ за 6 мес',
+            'mths_since_recent_inq': 'Месяцев с последнего запроса',
+            'percent_bc_gt_75': '% карт с нагрузкой >75%',
+        }
+        
+        # Топ факторов
+        top_idx = np.argsort(np.abs(shap_values))[::-1][:top_n]
+        factors = []
+        
+        for idx in top_idx:
+            feature = feature_names[idx]
+            impact = float(shap_values[idx])
+            direction = "повышает риск" if impact > 0 else "снижает риск"
+            
+            # Получаем значение признака
+            value = df.iloc[0][feature] if feature in df.columns else None
+            if isinstance(value, (np.integer, np.floating)):
+                value = float(value)
+            
+            # Форматируем значение
+            formatted_value = ""
+            if value is not None:
+                if 'amnt' in feature or 'inc' in feature or 'lim' in feature:
+                    formatted_value = f"{value:,.0f} ₽"
+                elif 'util' in feature or 'dti' in feature:
+                    formatted_value = f"{value:.1f}%"
+                elif 'years' in feature or 'length' in feature:
+                    formatted_value = f"{value:.0f} лет"
+                else:
+                    formatted_value = str(value)
+            
+            factors.append({
+                'feature': feature,
+                'feature_ru': feature_names_ru.get(feature, feature),
+                'impact': impact,
+                'direction': direction,
+                'value': value,
+                'formatted_value': formatted_value,
+            })
+        
+        return factors
+        
+    except Exception as e:
+        print(f"Ошибка SHAP: {e}")
+        return []

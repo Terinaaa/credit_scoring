@@ -4,8 +4,10 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q
-from .models import Client
+from .models import Client, ClientData
 from .forms import ClientForm, ClientSearchForm
+from django.http import JsonResponse
+from django.views.decorators.http import require_GET
 
 @login_required
 def client_list(request):
@@ -98,3 +100,35 @@ def client_delete(request, pk):
     return render(request, 'clients/client_confirm_delete.html', {
         'client': client
     })
+
+@require_GET
+@login_required
+def get_client_by_passport(request):
+    """
+    AJAX-эндпоинт для получения данных клиента по паспорту
+    """
+    doc_series = request.GET.get('doc_series', '').strip()
+    doc_number = request.GET.get('doc_number', '').strip()
+    
+    if not doc_series or not doc_number:
+        return JsonResponse({'error': 'Не указаны паспортные данные'}, status=400)
+    
+    try:
+        client = Client.objects.get(doc_series=doc_series, doc_number=doc_number)
+        
+        data = {
+            'exists': True,
+            'id': client.id,
+            'first_name': client.first_name,
+            'last_name': client.last_name,
+            'middle_name': client.middle_name or '',
+            'birth_date': client.birth_date.strftime('%Y-%m-%d'),
+            'email': client.email,
+            'phone_num': client.phone_num,
+        }
+        return JsonResponse(data)
+        
+    except Client.DoesNotExist:
+        return JsonResponse({'exists': False, 'error': 'Клиент не найден'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)

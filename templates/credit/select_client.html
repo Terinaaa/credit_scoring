@@ -1,0 +1,283 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Выбор клиента{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    
+    .search-card {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 30px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+    
+    .search-card .form-label {
+        font-weight: 500;
+        color: #495057;
+        margin-bottom: 8px;
+    }
+    
+    .search-card .form-control {
+        background: #f8f9fa;
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        padding: 12px;
+        transition: all 0.3s;
+        width: 100%;
+    }
+    
+    .search-card .form-control:focus {
+        background: white;
+        border-color: #667eea;
+        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        transform: translateY(-2px);
+    }
+    
+    .btn-search {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 12px 25px;
+        font-weight: 600;
+        transition: all 0.3s;
+        width: 100%;
+    }
+    
+    .btn-search:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    }
+    
+    .btn-reset {
+        background: #6c757d;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 12px 20px;
+        transition: all 0.3s;
+        width: 100%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        text-decoration: none;
+    }
+    
+    .btn-reset:hover {
+        background: #5a6268;
+        transform: translateY(-2px);
+        color: white;
+    }
+    
+    .table-container {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+        overflow-x: auto;
+    }
+    
+    .clients-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .clients-table th {
+        background: #f8f9fa;
+        padding: 12px 15px;
+        text-align: left;
+        font-weight: 600;
+        border-bottom: 2px solid #dee2e6;
+    }
+    
+    .clients-table td {
+        padding: 12px 15px;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .clients-table tr:hover {
+        background: #f8f9fa;
+    }
+    
+    .btn-select {
+        background: #28a745;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        padding: 6px 12px;
+        text-decoration: none;
+        font-size: 0.9em;
+    }
+    
+    .btn-select:hover {
+        background: #218838;
+        color: white;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #6c757d;
+    }
+    
+    .empty-state i {
+        font-size: 4em;
+        color: #dee2e6;
+        margin-bottom: 20px;
+    }
+    
+    .pagination {
+        margin-top: 20px;
+        display: flex;
+        justify-content: center;
+        gap: 5px;
+    }
+    
+    .page-link {
+        padding: 8px 12px;
+        border: 1px solid #dee2e6;
+        border-radius: 5px;
+        color: #007bff;
+        text-decoration: none;
+    }
+    
+    .page-link.active {
+        background: #007bff;
+        color: white;
+        border-color: #007bff;
+    }
+    
+    .page-link:hover {
+        background: #e9ecef;
+    }
+    
+    .info-message {
+        background: #e3f2fd;
+        border: 1px solid #90caf9;
+        color: #1976d2;
+        padding: 12px 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="page-header">
+        <h1 class="mb-0">Создание заявки</h1>
+    </div>
+    
+    <!-- Карточка поиска -->
+    <div class="search-card">
+        <h5 class="mb-4"><i class="fas fa-search me-2"></i>Поиск клиента по паспорту</h5>
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-5">
+                <label class="form-label">Серия паспорта</label>
+                <input type="text" name="doc_series" class="form-control" placeholder="Введите серию" value="{{ doc_series }}">
+            </div>
+            <div class="col-md-5">
+                <label class="form-label">Номер паспорта</label>
+                <input type="text" name="doc_number" class="form-control" placeholder="Введите номер" value="{{ doc_number }}">
+            </div>
+            <div class="col-md-2">
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn-search flex-grow-1">
+                        <i class="fas fa-search me-2"></i>Найти
+                    </button>
+                    <a href="{% url 'credit:select_client' %}" class="btn-reset">
+                        <i class="fas fa-times"></i>Сброс
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Результаты поиска -->
+    {% if search_performed %}
+        <div class="info-message">
+            <i class="fas fa-info-circle me-2"></i>
+            Найдено клиентов: {{ clients_count }}
+        </div>
+    {% else %}
+        <div class="info-message">
+            <i class="fas fa-info-circle me-2"></i>
+            Введите паспортные данные для поиска клиента
+        </div>
+    {% endif %}
+    
+    <!-- Таблица клиентов -->
+    <div class="table-container">
+        {% if page_obj %}
+        <table class="clients-table">
+            <thead>
+                <tr>
+                    <th>ФИО</th>
+                    <th>Паспорт</th>
+                    <th>Дата рождения</th>
+                    <th>Телефон</th>
+                    <th>Email</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for client in page_obj %}
+                <tr>
+                    <td><strong>{{ client.get_full_name }}</strong></td>
+                    <td>{{ client.get_passport }}</td>
+                    <td>{{ client.birth_date|date:"d.m.Y" }}</td>
+                    <td>{{ client.phone_num }}</td>
+                    <td>{{ client.email }}</td>
+                    <td>
+                        <a href="{% url 'credit:application_create' client.pk %}" class="btn-select">
+                            <i class="fas fa-file-invoice me-1"></i>Создать заявку
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="empty-state">
+                        <i class="fas fa-user-slash"></i>
+                        <h4>Клиенты не найдены</h4>
+                        <p>Проверьте правильность паспортных данных</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+    </div>
+    
+    <!-- Пагинация -->
+    {% if page_obj.has_other_pages %}
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}{% if doc_series %}&doc_series={{ doc_series }}{% endif %}{% if doc_number %}&doc_number={{ doc_number }}{% endif %}" class="page-link">&laquo;</a>
+        {% endif %}
+        
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+                <span class="page-link active">{{ num }}</span>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <a href="?page={{ num }}{% if doc_series %}&doc_series={{ doc_series }}{% endif %}{% if doc_number %}&doc_number={{ doc_number }}{% endif %}" class="page-link">{{ num }}</a>
+            {% endif %}
+        {% endfor %}
+        
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if doc_series %}&doc_series={{ doc_series }}{% endif %}{% if doc_number %}&doc_number={{ doc_number }}{% endif %}" class="page-link">&raquo;</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

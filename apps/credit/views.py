@@ -14,6 +14,9 @@ from django.db.models import Q
 from django.utils import timezone
 from datetime import timedelta
 from .forms import ApplicationFilterForm
+from django.http import JsonResponse
+from django.views.decorators.http import require_GET
+from django.views.decorators.csrf import csrf_exempt
 
 
 @login_required
@@ -263,4 +266,63 @@ def application_list(request):
         'page_obj': page_obj,
         'filter_form': filter_form,
         'stats': stats,
+    })
+
+@require_GET
+@login_required
+def get_client_by_passport(request):
+    doc_series = request.GET.get('doc_series', '').strip()
+    doc_number = request.GET.get('doc_number', '').strip()
+    
+    if not doc_series or not doc_number:
+        return JsonResponse({'error': 'Не указаны паспортные данные'}, status=400)
+    
+    try:
+        client = Client.objects.get(doc_series=doc_series, doc_number=doc_number)
+        
+        data = {
+            'exists': True,
+            'id': client.id,
+            'first_name': client.first_name,
+            'last_name': client.last_name,
+            'middle_name': client.middle_name or '',
+            'birth_date': client.birth_date.strftime('%Y-%m-%d'),
+            'email': client.email,
+            'phone_num': client.phone_num,
+        }
+        return JsonResponse(data)
+        
+    except Client.DoesNotExist:
+        return JsonResponse({'exists': False, 'error': 'Клиент не найден'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+    
+@login_required
+def select_client_for_application(request):
+    # Поиск по паспорту
+    doc_series = request.GET.get('doc_series', '').strip()
+    doc_number = request.GET.get('doc_number', '').strip()
+    clients = Client.objects.all()
+    search_performed = False
+    
+    if doc_series or doc_number:
+        search_performed = True
+        if doc_series and doc_number:
+            clients = clients.filter(doc_series=doc_series, doc_number=doc_number)
+        elif doc_series:
+            clients = clients.filter(doc_series=doc_series)
+        elif doc_number:
+            clients = clients.filter(doc_number=doc_number)
+    
+    # Пагинация
+    paginator = Paginator(clients, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    return render(request, 'credit/select_client.html', {
+        'page_obj': page_obj,
+        'clients_count': clients.count(),
+        'search_performed': search_performed,
+        'doc_series': doc_series,
+        'doc_number': doc_number,
     })

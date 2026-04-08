@@ -150,13 +150,45 @@
         padding: 50px;
         color: #6c757d;
     }
+
+     .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    
+    .btn-create {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 12px 25px;
+        font-weight: 600;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .btn-create:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        color: white;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
     <h1 class="mb-4">Оценка кредитоспособности</h1>
-    
+    <div class="page-header">
+        <h1 class="mb-0">Оценка кредитоспособности</h1>
+        <a href="/credit/select-client/" class="btn-create">
+            <i class="fas fa-plus-circle"></i> Создать заявку
+        </a>
+    </div>
     <!-- Статистика -->
     <div class="stats-row">
         <div class="stat-card">

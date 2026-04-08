@@ -6,6 +6,7 @@
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'css/client_style.css' %}">
+
 {% endblock %}
 
 {% block content %}
@@ -17,7 +18,7 @@
                     <h4>{{ title }}</h4>
                 </div>
                 <div class="card-body">
-                    <form method="post">
+                    <form method="post" id="clientForm">
                         {% csrf_token %}
 
                         <!-- Паспортные данные -->
@@ -25,14 +26,20 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="{{ form.doc_series.id_for_label }}" class="form-label">Серия</label>
-                                {{ form.doc_series }}
+                                <div class="passport-input-group">
+                                    {{ form.doc_series }}
+                                    <div class="loading-spinner" id="seriesSpinner"></div>
+                                </div>
                                 {% if form.doc_series.errors %}
                                     <div class="text-danger">{{ form.doc_series.errors }}</div>
                                 {% endif %}
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="{{ form.doc_number.id_for_label }}" class="form-label">Номер</label>
-                                {{ form.doc_number }}
+                                <div class="passport-input-group">
+                                    {{ form.doc_number }}
+                                    <div class="loading-spinner" id="numberSpinner"></div>
+                                </div>
                                 {% if form.doc_number.errors %}
                                     <div class="text-danger">{{ form.doc_number.errors }}</div>
                                 {% endif %}
@@ -87,4 +94,157 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Получение CSRF-токена
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    // Автозаполнение формы по паспортным данным
+    function fetchClientByPassport(series, number) {
+        if (!series || !number) return;
+        
+        // Показываем спиннеры
+        document.getElementById('seriesSpinner').style.display = 'block';
+        document.getElementById('numberSpinner').style.display = 'block';
+        
+        fetch(`/clients/api/get-client-by-passport/?doc_series=${series}&doc_number=${number}`, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        })
+        .then(response => {
+            if (response.status === 404) {
+                // Клиент не найден — очищаем форму
+                clearFormFields();
+                return null;
+            }
+            if (!response.ok) {
+                throw new Error('Ошибка сети');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data && data.exists) {
+                // Заполняем форму данными из базы
+                fillFormFields(data);
+                showAutoFillNotification();
+            }
+        })
+        .catch(error => {
+            console.error('Ошибка:', error);
+        })
+        .finally(() => {
+            // Скрываем спиннеры
+            document.getElementById('seriesSpinner').style.display = 'none';
+            document.getElementById('numberSpinner').style.display = 'none';
+        });
+    }
+    
+    function fillFormFields(data) {
+        const firstNameField = document.getElementById('{{ form.first_name.id_for_label }}');
+        const lastNameField = document.getElementById('{{ form.last_name.id_for_label }}');
+        const middleNameField = document.getElementById('{{ form.middle_name.id_for_label }}');
+        const birthDateField = document.getElementById('{{ form.birth_date.id_for_label }}');
+        const emailField = document.getElementById('{{ form.email.id_for_label }}');
+        const phoneField = document.getElementById('{{ form.phone_num.id_for_label }}');
+        
+        if (firstNameField) firstNameField.value = data.first_name;
+        if (lastNameField) lastNameField.value = data.last_name;
+        if (middleNameField) middleNameField.value = data.middle_name;
+        if (birthDateField) birthDateField.value = data.birth_date;
+        if (emailField) emailField.value = data.email;
+        if (phoneField) phoneField.value = data.phone_num;
+        
+        // Подсвечиваем заполненные поля
+        highlightAutoFilledFields();
+    }
+    
+    function clearFormFields() {
+        const firstNameField = document.getElementById('{{ form.first_name.id_for_label }}');
+        const lastNameField = document.getElementById('{{ form.last_name.id_for_label }}');
+        const middleNameField = document.getElementById('{{ form.middle_name.id_for_label }}');
+        const birthDateField = document.getElementById('{{ form.birth_date.id_for_label }}');
+        const emailField = document.getElementById('{{ form.email.id_for_label }}');
+        const phoneField = document.getElementById('{{ form.phone_num.id_for_label }}');
+        
+        if (firstNameField) firstNameField.value = '';
+        if (lastNameField) lastNameField.value = '';
+        if (middleNameField) middleNameField.value = '';
+        if (birthDateField) birthDateField.value = '';
+        if (emailField) emailField.value = '';
+        if (phoneField) phoneField.value = '';
+    }
+    
+    function showAutoFillNotification() {
+        const notification = document.createElement('div');
+        notification.className = 'alert alert-success';
+        notification.style.position = 'fixed';
+        notification.style.top = '20px';
+        notification.style.right = '20px';
+        notification.style.zIndex = '9999';
+        notification.style.padding = '12px 20px';
+        notification.style.borderRadius = '8px';
+        notification.style.backgroundColor = '#d4edda';
+        notification.style.color = '#155724';
+        notification.style.border = '1px solid #c3e6cb';
+        notification.innerHTML = '<i class="fas fa-check-circle"></i> Данные клиента автоматически подставлены';
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.remove();
+        }, 3000);
+    }
+    
+    function highlightAutoFilledFields() {
+        const fieldIds = ['first_name', 'last_name', 'middle_name', 'birth_date', 'email', 'phone_num'];
+        fieldIds.forEach(fieldId => {
+            const element = document.getElementById(`id_${fieldId}`);
+            if (element && element.value) {
+                element.classList.add('auto-fill-highlight');
+                setTimeout(() => {
+                    element.classList.remove('auto-fill-highlight');
+                }, 1000);
+            }
+        });
+    }
+    
+    // Слушатели событий для полей паспорта
+    document.addEventListener('DOMContentLoaded', function() {
+        const seriesInput = document.getElementById('{{ form.doc_series.id_for_label }}');
+        const numberInput = document.getElementById('{{ form.doc_number.id_for_label }}');
+        
+        if (!seriesInput || !numberInput) return;
+        
+        let debounceTimer;
+        function checkAndFetch() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                const series = seriesInput.value.trim();
+                const number = numberInput.value.trim();
+                if (series.length === 4 && number.length === 6) {
+                    fetchClientByPassport(series, number);
+                }
+            }, 500);
+        }
+        
+        seriesInput.addEventListener('input', checkAndFetch);
+        numberInput.addEventListener('input', checkAndFetch);
+    });
+</script>
 {% endblock %}

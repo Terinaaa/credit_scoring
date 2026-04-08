@@ -69,21 +69,26 @@
                                 <h5>Ключевые факторы</h5>
                             </div>
                             <div class="card-body">
-                                {% if application.scoring_factors %}
-                                    <ul class="list-group">
-                                        {% for factor in application.scoring_factors %}
-                                            <li class="list-group-item">
-                                                <strong>{{ factor.feature_ru }}</strong>
-                                                <span class="float-end {% if factor.direction == 'повышает риск' %}text-danger{% else %}text-success{% endif %}">
-                                                    {{ factor.direction }}
-                                                </span>
-                                                <br>
-                                                <small class="text-muted">Значение: {{ factor.value }}</small>
-                                            </li>
+                                {% if application.top_factors %}
+                                    <div class="list-group">
+                                        {% for factor in application.top_factors %}
+                                            <div class="list-group-item">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <strong>{{ factor.feature_ru }}</strong>
+                                                    <span class="badge {% if factor.direction == 'повышает риск' %}bg-danger{% else %}bg-success{% endif %}">
+                                                        {{ factor.direction }}
+                                                    </span>
+                                                </div>
+                                                {% if factor.formatted_value %}
+                                                    <small class="text-muted d-block mt-1">Значение: {{ factor.formatted_value }}</small>
+                                                {% elif factor.value %}
+                                                    <small class="text-muted d-block mt-1">Значение: {{ factor.value }}</small>
+                                                {% endif %}
+                                            </div>
                                         {% endfor %}
-                                    </ul>
+                                    </div>
                                 {% else %}
-                                    <p class="text-muted">Нет данных о факторах</p>
+                                    <p class="text-muted text-center mb-0">Нет данных о факторах</p>
                                 {% endif %}
                             </div>
                         </div>
