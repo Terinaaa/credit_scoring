@@ -14,4 +14,5 @@ urlpatterns = [
     path('clients/', include('apps.clients.urls')),
     path('scoring/', include('apps.scoring.urls')),
     path('credit/', include('apps.credit.urls')),
+    path('reports/', include('apps.reports.urls')),
 ]
