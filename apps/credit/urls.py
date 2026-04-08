@@ -22,4 +22,7 @@ urlpatterns = [
      path('application/<int:pk>/score/',
          views.application_score,
          name='application_score'),
+     path('application/<int:pk>/manual-decision/',
+          views.manual_decision,
+          name='manual_decision'),
 ]

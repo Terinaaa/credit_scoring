@@ -17,6 +17,10 @@ from .forms import ApplicationFilterForm
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from .forms import ManualDecisionForm
+from apps.scoring.models import SystemDecision, RiskCategory
 
 
 @login_required
@@ -325,4 +329,86 @@ def select_client_for_application(request):
         'search_performed': search_performed,
         'doc_series': doc_series,
         'doc_number': doc_number,
+    })
+
+@login_required
+def manual_decision(request, pk):
+    """
+    Ручное изменение статуса заявки (для заявок с ручной проверкой)
+    """
+    application = get_object_or_404(
+        CreditApplication.objects.select_related('status', 'client'),
+        pk=pk
+    )
+    
+    # Проверяем, что заявка действительно требует ручной проверки
+    if application.status.type != 'Требуется ручная проверка':
+        messages.error(request, 'Только заявки со статусом "Требуется ручная проверка" могут быть изменены вручную')
+        return redirect('credit:application_detail', pk=application.pk)
+    
+    if request.method == 'POST':
+        form = ManualDecisionForm(request.POST)
+        if form.is_valid():
+            decision = form.cleaned_data['decision']
+            comment = form.cleaned_data.get('comment', '')
+            
+            if decision == 'approved':
+                # Одобряем заявку
+                new_status, _ = ApplicationStatus.objects.get_or_create(
+                    type='Одобрена',
+                    defaults={'description': 'Кредит одобрен'}
+                )
+                system_decision, _ = SystemDecision.objects.get_or_create(
+                    decision='MANUAL_APPROVE',
+                    defaults={'description': 'Одобрено вручную'}
+                )
+                risk_category, _ = RiskCategory.objects.get_or_create(
+                    category=2,
+                    defaults={'description': 'Умеренный риск (ручное одобрение)'}
+                )
+                messages.success(request, f'Заявка №{application.app_num} одобрена вручную')
+                
+            elif decision == 'rejected':
+                # Отклоняем заявку
+                new_status, _ = ApplicationStatus.objects.get_or_create(
+                    type='Отказано',
+                    defaults={'description': 'В выдаче кредита отказано'}
+                )
+                system_decision, _ = SystemDecision.objects.get_or_create(
+                    decision='MANUAL_REJECT',
+                    defaults={'description': 'Отказано вручную'}
+                )
+                risk_category, _ = RiskCategory.objects.get_or_create(
+                    category=4,
+                    defaults={'description': 'Высокий риск (ручной отказ)'}
+                )
+                messages.warning(request, f'Заявка №{application.app_num} отклонена вручную')
+            
+            # Обновляем заявку
+            application.status = new_status
+            application.system_decision = system_decision
+            application.risk_category = risk_category
+            
+            # Добавляем комментарий в JSON-поле, если есть
+            if comment:
+                if application.top_factors:
+                    application.top_factors['manual_comment'] = comment
+                    application.top_factors['manual_decision_by'] = request.user.get_full_name()
+                    application.top_factors['manual_decision_date'] = timezone.now().isoformat()
+                else:
+                    application.top_factors = {
+                        'manual_comment': comment,
+                        'manual_decision_by': request.user.get_full_name(),
+                        'manual_decision_date': timezone.now().isoformat()
+                    }
+            
+            application.save()
+            
+            return redirect('credit:application_detail', pk=application.pk)
+    else:
+        form = ManualDecisionForm()
+    
+    return render(request, 'credit/manual_decision.html', {
+        'application': application,
+        'form': form,
     })

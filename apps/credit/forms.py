@@ -4,6 +4,7 @@ from django.utils import timezone
 from .models import CreditApplication
 from apps.clients.models import ClientData
 from apps.scoring.models import EmploymentType
+from apps.scoring.models import ApplicationStatus
 
 
 class CreditApplicationForm(forms.ModelForm):
@@ -311,4 +312,29 @@ class ApplicationFilterForm(forms.Form):
             'class': 'form-control',
             'placeholder': 'Номер паспорта'
         })
+    )
+
+
+class ManualDecisionForm(forms.Form):
+    """Форма для ручного принятия решения по заявке"""
+    
+    DECISION_CHOICES = [
+        ('approved', 'Одобрить'),
+        ('rejected', 'Отклонить'),
+    ]
+    
+    decision = forms.ChoiceField(
+        choices=DECISION_CHOICES,
+        widget=forms.RadioSelect(attrs={'class': 'form-check-input'}),
+        label='Решение'
+    )
+    
+    comment = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'rows': 3,
+            'placeholder': 'Введите комментарий (необязательно)'
+        }),
+        label='Комментарий'
     )
