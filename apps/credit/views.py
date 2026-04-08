@@ -10,6 +10,10 @@ from .forms import ScoringDataForm, CreditApplicationForm
 from django.utils import timezone
 from .ml_scoring import predict_application, get_shap_factors
 from apps.scoring.models import SystemDecision, RiskCategory
+from django.db.models import Q
+from django.utils import timezone
+from datetime import timedelta
+from .forms import ApplicationFilterForm
 
 
 @login_required
@@ -194,3 +198,69 @@ def application_score(request, pk):
         messages.error(request, f'Ошибка при выполнении скоринга: {e}')
     
     return redirect('credit:application_detail', pk=application.pk)
+
+@login_required
+def application_list(request):
+    """
+    Список всех заявок с фильтрацией
+    Доступен для кредитных менеджеров и руководителей
+    """
+    # Базовый запрос: заявки за последний месяц
+    one_month_ago = timezone.now() - timedelta(days=30)
+    applications = CreditApplication.objects.filter(
+        created_at__gte=one_month_ago
+    ).select_related(
+        'client', 'status', 'system_decision', 'risk_category'
+    ).order_by('-created_at')
+    
+    # Форма фильтрации
+    filter_form = ApplicationFilterForm(request.GET or None)
+    
+    if filter_form.is_valid():
+        # Фильтр по статусу
+        status = filter_form.cleaned_data.get('status')
+        if status:
+            applications = applications.filter(status__type=status)
+        
+        # Фильтр по дате
+        date_from = filter_form.cleaned_data.get('date_from')
+        if date_from:
+            applications = applications.filter(created_at__date__gte=date_from)
+        
+        date_to = filter_form.cleaned_data.get('date_to')
+        if date_to:
+            applications = applications.filter(created_at__date__lte=date_to)
+        
+        # Фильтр по паспортным данным
+        doc_series = filter_form.cleaned_data.get('doc_series')
+        doc_number = filter_form.cleaned_data.get('doc_number')
+        
+        if doc_series and doc_number:
+            applications = applications.filter(
+                client__doc_series=doc_series,
+                client__doc_number=doc_number
+            )
+        elif doc_series:
+            applications = applications.filter(client__doc_series=doc_series)
+        elif doc_number:
+            applications = applications.filter(client__doc_number=doc_number)
+    
+    # Пагинация
+    paginator = Paginator(applications, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    # Статистика по заявкам
+    stats = {
+        'total': applications.count(),
+        'approved': applications.filter(status__type='Одобрена').count(),
+        'rejected': applications.filter(status__type='Отказано').count(),
+        'pending': applications.filter(status__type='Новая').count(),
+        'manual': applications.filter(status__type='Требуется ручная проверка').count(),
+    }
+    
+    return render(request, 'credit/application_list.html', {
+        'page_obj': page_obj,
+        'filter_form': filter_form,
+        'stats': stats,
+    })

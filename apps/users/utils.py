@@ -12,11 +12,11 @@ def get_menu_by_role(role_name):
             {'url': '/users/login/', 'icon': '↪️', 'text': 'Вход'}
         ],
         'credit_manager': [
-            {'url': '/scoring/', 'icon': '📊', 'text': 'Оценка кредитоспособности'},
+            {'url': '/credit/', 'icon': '📊', 'text': 'Оценка кредитоспособности'},
             {'url': '/clients/', 'icon': '👤', 'text': 'Данные по клиенту'}
         ],
         'manager': [
-            {'url': '/scoring/', 'icon': '📊', 'text': 'Оценка кредитоспособности'},
+            {'url': '/credit/', 'icon': '📊', 'text': 'Оценка кредитоспособности'},
             {'url': '/clients/', 'icon': '👤', 'text': 'Данные по клиенту'},
             {'url': '/reports/', 'icon': '📈', 'text': 'Отчетность'}
         ],

@@ -4,6 +4,9 @@ from . import views
 app_name = 'credit'
 
 urlpatterns = [
+    path('',
+         views.application_list,
+         name='application_list'),
     path('client/<int:client_id>/applications/', 
          views.client_applications, 
          name='client_applications'),

@@ -259,3 +259,56 @@ class ScoringDataForm(forms.ModelForm):
 
 # Сохраняем старую форму для обратной совместимости (если нужно)
 ClientDataForm = ScoringDataForm
+
+class ApplicationFilterForm(forms.Form):
+    """Форма фильтрации заявок"""
+    
+    STATUS_CHOICES = [
+        ('', 'Все статусы'),
+        ('Новая', 'Новая'),
+        ('Одобрена', 'Одобрена'),
+        ('Отказано', 'Отказано'),
+        ('Требуется ручная проверка', 'Требуется ручная проверка'),
+    ]
+    
+    status = forms.ChoiceField(
+        choices=STATUS_CHOICES,
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    
+    date_from = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={
+            'type': 'date',
+            'class': 'form-control'
+        }),
+        label='Дата с'
+    )
+    
+    date_to = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={
+            'type': 'date',
+            'class': 'form-control'
+        }),
+        label='Дата по'
+    )
+    
+    doc_series = forms.CharField(
+        max_length=4,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Серия паспорта'
+        })
+    )
+    
+    doc_number = forms.CharField(
+        max_length=6,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Номер паспорта'
+        })
+    )
