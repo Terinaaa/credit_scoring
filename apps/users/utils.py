@@ -2,7 +2,7 @@
 def get_menu_by_role(role_name):
     # общий элемент меню для всех пользователей
     base_menu = [
-        {'url': '/', 'icon': '🏠', 'text': 'Главная'}
+        {'url': '/', 'text': 'Главная'}
     ]
     
     # пункты меню в зависимости от роли пользователя
@@ -12,21 +12,21 @@ def get_menu_by_role(role_name):
             {'url': '/users/login/', 'icon': '↪️', 'text': 'Вход'}
         ],
         'credit_manager': [
-            {'url': '/credit/', 'icon': '📊', 'text': 'Оценка кредитоспособности'},
-            {'url': '/clients/', 'icon': '👤', 'text': 'Данные по клиенту'}
+            {'url': '/credit/', 'text': 'Оценка кредитоспособности'},
+            {'url': '/clients/', 'text': 'Данные по клиенту'}
         ],
         'manager': [
-            {'url': '/credit/', 'icon': '📊', 'text': 'Оценка кредитоспособности'},
-            {'url': '/clients/', 'icon': '👤', 'text': 'Данные по клиенту'},
-            {'url': '/reports/', 'icon': '📈', 'text': 'Отчетность'}
+            {'url': '/credit/', 'text': 'Оценка кредитоспособности'},
+            {'url': '/clients/', 'text': 'Данные по клиенту'},
+            {'url': '/reports/', 'text': 'Отчетность'}
         ],
         'db_admin': [
-            {'url': '/admin/auth/user/', 'icon': '👥', 'text': 'Управление пользователями'},  # Конкретный URL
-            {'url': '/admin/scoring/employmenttype/', 'icon': '💼', 'text': 'Типы занятости'},
-            {'url': '/admin/scoring/applicationstatus/', 'icon': '📊', 'text': 'Статусы заявок'},
-            {'url': '/admin/scoring/systemdecision/', 'icon': '⚖️', 'text': 'Решения системы'},
-            {'url': '/admin/scoring/riskcategory/', 'icon': '⚠️', 'text': 'Категории риска'},
-            {'url': '/clients/', 'icon': '👤', 'text': 'Клиенты'},
+            {'url': '/admin/auth/user/',  'text': 'Управление пользователями'},  # Конкретный URL
+            {'url': '/admin/scoring/employmenttype/','text': 'Типы занятости'},
+            {'url': '/admin/scoring/applicationstatus/', 'text': 'Статусы заявок'},
+            {'url': '/admin/scoring/systemdecision/', 'text': 'Решения системы'},
+            {'url': '/admin/scoring/riskcategory/', 'text': 'Категории риска'},
+            {'url': '/clients/', 'text': 'Клиенты'},
         ],
         'system_admin': [
             {'url': '/admin/', 'icon': '⚙️', 'text': 'Панель управления'},

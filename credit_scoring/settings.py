@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'apps.reports',
     'apps.clients',
     'apps.credit',
+    'apps.dashboard',
 ]
 
 AUTH_USER_MODEL = 'users.User'

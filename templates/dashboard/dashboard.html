@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Главная{% endblock %}
+
+{% block extra_css %}
+<style>
+    .welcome-section {
+        background: #34495e;
+        border-radius: 20px;
+        padding: 35px 30px;
+        margin-bottom: 35px;
+        color: white;
+        box-shadow: 0 5px 20px rgba(0, 123, 255, 0.2);
+    }
+    
+    .welcome-section h1 {
+        font-size: 2.2em;
+        margin-bottom: 15px;
+        font-weight: 500;
+        color: white;
+    }
+    
+    .welcome-section h1 i {
+        margin-right: 12px;
+    }
+    
+    .datetime-info {
+        display: flex;
+        gap: 30px;
+        margin-top: 15px;
+        font-size: 1.6em;
+        opacity: 0.95;
+    }
+    
+    .datetime-info i {
+        margin-right: 8px;
+    }
+    
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 25px;
+        margin-bottom: 30px;
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 20px;
+        padding: 30px 25px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+        transition: all 0.3s;
+        cursor: pointer;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        text-align: center;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+    }
+    
+    .stat-icon {
+        width: 70px;
+        height: 70px;
+        border-radius: 20px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 20px;
+    }
+    
+    .stat-icon i {
+        font-size: 35px;
+        color: white;
+    }
+    
+    .stat-icon.new {
+        background: #1c8648;
+    }
+    
+    .stat-icon.manual {
+        background: #ffc107;
+    }
+    
+    .stat-content h3 {
+        font-size: 2.8em;
+        font-weight: 700;
+        margin: 0 0 8px 0;
+        color: #2c3e50;
+    }
+    
+    .stat-content p {
+        color: #6c757d;
+        margin: 0;
+        font-size: 1em;
+    }
+    
+    .stat-footer {
+        margin-top: 18px;
+        font-size: 0.9em;
+        color: #007bff;
+        font-weight: 500;
+    }
+    
+    .stat-card.manual .stat-footer {
+        color: #ffc107;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    
+    <!-- Приветственная секция -->
+    <div class="welcome-section">
+        <h1>
+            <i class="fas fa-smile-wink"></i>
+            Добро пожаловать, {{ user_name }}!
+        </h1>
+        <div class="datetime-info">
+            <div>
+                <i class="fas fa-calendar-alt"></i>
+                <span id="currentDate">{{ current_date }}</span>
+            </div>
+            <div>
+                <i class="fas fa-clock"></i>
+                <span id="currentTime">{{ current_time }}</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Виджеты статистики -->
+    <div class="stats-row">
+        <!-- Виджет "Новые заявки" -->
+        <a href="{% url 'credit:application_list' %}?status=Новая" class="stat-card">
+            <div class="stat-icon new">
+                <i class="fas fa-file-alt"></i>
+            </div>
+            <div class="stat-content">
+                <h3>{{ new_applications_count }}</h3>
+                <p>Заявок со статусом "Новая"</p>
+            </div>
+            <div class="stat-footer">
+                <i class="fas fa-arrow-right me-1"></i>Перейти к списку
+            </div>
+        </a>
+        
+        <!-- Виджет "Требуется ручная проверка" -->
+        <a href="{% url 'credit:application_list' %}?status=Требуется ручная проверка" class="stat-card">
+            <div class="stat-icon manual">
+                <i class="fas fa-user-check"></i>
+            </div>
+            <div class="stat-content">
+                <h3>{{ manual_applications_count }}</h3>
+                <p>Заявок, требующих ручной проверки</p>
+            </div>
+            <div class="stat-footer">
+                <i class="fas fa-arrow-right me-1"></i>Перейти к списку
+            </div>
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Функция обновления времени
+    function updateDateTime() {
+        const now = new Date();
+        
+        // Форматирование даты: ДД.ММ.ГГГГ
+        const day = String(now.getDate()).padStart(2, '0');
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const year = now.getFullYear();
+        const dateStr = `${day}.${month}.${year}`;
+        
+        // Форматирование времени: ЧЧ:ММ:СС
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        const timeStr = `${hours}:${minutes}:${seconds}`;
+        
+        // Обновление элементов на странице
+        const dateElement = document.getElementById('currentDate');
+        const timeElement = document.getElementById('currentTime');
+        
+        if (dateElement) dateElement.textContent = dateStr;
+        if (timeElement) timeElement.textContent = timeStr;
+    }
+    
+    // Обновляем время каждую секунду
+    setInterval(updateDateTime, 1000);
+    
+    // Запускаем сразу при загрузке страницы
+    document.addEventListener('DOMContentLoaded', updateDateTime);
+</script>
+{% endblock %}
