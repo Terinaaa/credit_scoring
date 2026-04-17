@@ -152,7 +152,125 @@
                     </div>
                 </div>
             </div>
-            
+            <!-- Финансовые данные, использованные в заявке -->
+            <div class="card mt-3">
+                <div class="card-header bg-info text-white">
+                    <h5><i class="fas fa-chart-line me-2"></i>Финансовые данные заявки</h5>
+                    <small class="text-white-50">Данные, использованные для скоринга</small>
+                </div>
+                <div class="card-body">
+                    
+                    <!-- Платежеспособность -->
+                    <h6 class="mt-2 text-primary">Платежеспособность</h6>
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <small class="text-muted">Сумма кредита:</small>
+                            <div><strong>{{ application.client_data.loan_amnt|floatformat:0 }} ₽</strong></div>
+                        </div>
+                        <div class="col-md-3">
+                            <small class="text-muted">Ежемесячный платеж:</small>
+                            <div><strong>{{ application.client_data.installment|floatformat:0 }} ₽</strong></div>
+                        </div>
+                        <div class="col-md-3">
+                            <small class="text-muted">Годовой доход:</small>
+                            <div><strong>{{ application.client_data.annual_inc|floatformat:0 }} ₽</strong></div>
+                        </div>
+                        <div class="col-md-3">
+                            <small class="text-muted">DTI:</small>
+                            <div><strong>{{ application.client_data.dti|floatformat:1 }}%</strong></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Кредитная дисциплина -->
+                    <h6 class="mt-3 text-primary">Кредитная дисциплина</h6>
+                    <div class="row mb-3">
+                        <div class="col-md-2">
+                            <small class="text-muted">Просрочек за 2 года:</small>
+                            <div><strong>{{ application.client_data.delinq_2yrs }}</strong></div>
+                        </div>
+                        <div class="col-md-2">
+                            <small class="text-muted">Текущих просрочек:</small>
+                            <div><strong>{{ application.client_data.acc_now_delinq }}</strong></div>
+                        </div>
+                        <div class="col-md-2">
+                            <small class="text-muted">Публичных записей:</small>
+                            <div><strong>{{ application.client_data.pub_rec }}</strong></div>
+                        </div>
+                        <div class="col-md-3">
+                            <small class="text-muted">Банкротств:</small>
+                            <div><strong>{{ application.client_data.pub_rec_bankruptcies }}</strong></div>
+                        </div>
+                        <div class="col-md-3">
+                            <small class="text-muted">Взысканий за 12 мес:</small>
+                            <div><strong>{{ application.client_data.collections_12_mths_ex_med }}</strong></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Кредитная нагрузка -->
+                    <h6 class="mt-3 text-primary">Кредитная нагрузка</h6>
+                    <div class="row mb-3">
+                        <div class="col-md-2">
+                            <small class="text-muted">Revol util:</small>
+                            <div><strong>{{ application.client_data.revol_util|floatformat:1 }}%</strong></div>
+                        </div>
+                        <div class="col-md-2">
+                            <small class="text-muted">BC util:</small>
+                            <div><strong>{{ application.client_data.bc_util|floatformat:1 }}%</strong></div>
+                        </div>
+                        <div class="col-md-3">
+                            <small class="text-muted">Долг без ипотеки:</small>
+                            <div><strong>{{ application.client_data.total_bal_ex_mort|floatformat:0 }} ₽</strong></div>
+                        </div>
+                        <div class="col-md-2">
+                            <small class="text-muted">Всего кредитов:</small>
+                            <div><strong>{{ application.client_data.total_acc }}</strong></div>
+                        </div>
+                        <div class="col-md-3">
+                            <small class="text-muted">Общий кредитный лимит:</small>
+                            <div><strong>{{ application.client_data.tot_hi_cred_lim|floatformat:0 }} ₽</strong></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Стабильность -->
+                    <h6 class="mt-3 text-primary">Стабильность</h6>
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <small class="text-muted">Стаж работы:</small>
+                            <div><strong>{{ application.client_data.emp_length }} лет</strong></div>
+                        </div>
+                        <div class="col-md-3">
+                            <small class="text-muted">Тип жилья:</small>
+                            <div><strong>{{ application.client_data.get_home_ownership_display }}</strong></div>
+                        </div>
+                        <div class="col-md-3">
+                            <small class="text-muted">Дата первого кредита:</small>
+                            <div><strong>{{ application.client_data.earliest_cr_line|date:"d.m.Y"|default:"—" }}</strong></div>
+                        </div>
+                        <div class="col-md-3">
+                            <small class="text-muted">Возраст КИ:</small>
+                            <div><strong>{{ application.client_data.credit_history_years }} лет</strong></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Поведенческий риск -->
+                    <h6 class="mt-3 text-primary">Поведенческий риск</h6>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <small class="text-muted">Запросов в БКИ за 6 мес:</small>
+                            <div><strong>{{ application.client_data.inq_last_6mths }}</strong></div>
+                        </div>
+                        <div class="col-md-3">
+                            <small class="text-muted">Месяцев с последнего запроса:</small>
+                            <div><strong>{{ application.client_data.mths_since_recent_inq }}</strong></div>
+                        </div>
+                        <div class="col-md-3">
+                            <small class="text-muted">% карт с utilization > 75%:</small>
+                            <div><strong>{{ application.client_data.percent_bc_gt_75|floatformat:1 }}%</strong></div>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
             <div class="mt-4">
                 <a href="{% url 'credit:client_applications' application.client.pk %}" class="btn btn-secondary">
                     <i class="fas fa-arrow-left me-2"></i>К списку заявок

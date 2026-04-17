@@ -100,10 +100,10 @@
                                         <i class="fas fa-list"></i>Заявки
                                     </a>
                                     
-                                    <!-- Кнопка просмотра данных клиента (будет реализовано позже) -->
-                                    <a href="#" 
-                                    class="btn-action btn-info" title="Просмотр данных">
-                                        <i class="fas fa-list"></i>Просмотр данных
+                                    <!-- Кнопка просмотра данных клиента -->
+                                    <a href="{% url 'clients:client_data' client.pk %}" 
+                                        class="btn-action btn-info" title="Просмотр данных">
+                                        <i class="fas fa-chart-bar">Просмотр данных</i>
                                     </a>
                                     
                                     <!-- Кнопка изменения данных клиента -->
