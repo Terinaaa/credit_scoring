@@ -212,22 +212,19 @@ def application_list(request):
     Список всех заявок с фильтрацией
     Доступен для кредитных менеджеров и руководителей
     """
-    # Базовый запрос: заявки за последний месяц
-    one_month_ago = timezone.now() - timedelta(days=30)
-    applications = CreditApplication.objects.filter(
-        created_at__gte=one_month_ago
-    ).select_related(
-        'client', 'status', 'system_decision', 'risk_category'
-    ).order_by('-created_at')
-    
     # Форма фильтрации
     filter_form = ApplicationFilterForm(request.GET or None)
+    
+    # Базовый запрос - все заявки (без фильтра по дате по умолчанию)
+    applications = CreditApplication.objects.all().select_related(
+        'client', 'status', 'system_decision', 'risk_category'
+    ).order_by('-created_at')
     
     if filter_form.is_valid():
         # Фильтр по статусу
         status = filter_form.cleaned_data.get('status')
         if status:
-            applications = applications.filter(status__type=status)
+            applications = applications.filter(status__type__iexact=status)
         
         # Фильтр по дате
         date_from = filter_form.cleaned_data.get('date_from')
@@ -251,6 +248,10 @@ def application_list(request):
             applications = applications.filter(client__doc_series=doc_series)
         elif doc_number:
             applications = applications.filter(client__doc_number=doc_number)
+    else:
+        # Если фильтр не применен, показываем только заявки за последние 30 дней
+        one_month_ago = timezone.now() - timedelta(days=30)
+        applications = applications.filter(created_at__gte=one_month_ago)
     
     # Пагинация
     paginator = Paginator(applications, 20)
@@ -334,23 +335,22 @@ def select_client_for_application(request):
 @login_required
 def manual_decision(request, pk):
     """
-    Ручное изменение статуса заявки (для заявок с ручной проверкой)
+    Ручное изменение статуса заявки (для любых заявок)
     """
     application = get_object_or_404(
         CreditApplication.objects.select_related('status', 'client'),
         pk=pk
     )
     
-    # Проверяем, что заявка действительно требует ручной проверки
-    if application.status.type != 'Требуется ручная проверка':
-        messages.error(request, 'Только заявки со статусом "Требуется ручная проверка" могут быть изменены вручную')
-        return redirect('credit:application_detail', pk=application.pk)
-    
     if request.method == 'POST':
         form = ManualDecisionForm(request.POST)
         if form.is_valid():
             decision = form.cleaned_data['decision']
             comment = form.cleaned_data.get('comment', '')
+            
+            # Сохраняем старое решение для истории
+            old_status = application.status.type
+            old_decision = application.system_decision.decision if application.system_decision else None
             
             if decision == 'approved':
                 # Одобряем заявку
@@ -389,18 +389,32 @@ def manual_decision(request, pk):
             application.system_decision = system_decision
             application.risk_category = risk_category
             
-            # Добавляем комментарий в JSON-поле, если есть
-            if comment:
-                if application.top_factors:
-                    application.top_factors['manual_comment'] = comment
-                    application.top_factors['manual_decision_by'] = request.user.get_full_name()
-                    application.top_factors['manual_decision_date'] = timezone.now().isoformat()
-                else:
-                    application.top_factors = {
-                        'manual_comment': comment,
-                        'manual_decision_by': request.user.get_full_name(),
-                        'manual_decision_date': timezone.now().isoformat()
-                    }
+            # Сохраняем историю ручного решения
+            manual_history = {
+                'old_status': old_status,
+                'old_decision': old_decision,
+                'new_status': new_status.type,
+                'new_decision': system_decision.decision,
+                'manual_decision_by': request.user.get_full_name(),
+                'manual_decision_date': timezone.now().isoformat(),
+                'comment': comment,
+                'previous_scoring_score': application.scoring_score,
+                'previous_probability': application.probability_default,
+            }
+            
+            # Проверяем тип top_factors и корректно добавляем историю
+            if application.top_factors is None:
+                application.top_factors = {'manual_history': [manual_history]}
+            elif isinstance(application.top_factors, dict):
+                if 'manual_history' not in application.top_factors:
+                    application.top_factors['manual_history'] = []
+                application.top_factors['manual_history'].append(manual_history)
+            elif isinstance(application.top_factors, list):
+                # Если это список, преобразуем в словарь
+                application.top_factors = {'manual_history': [manual_history]}
+            else:
+                # Любой другой случай
+                application.top_factors = {'manual_history': [manual_history]}
             
             application.save()
             

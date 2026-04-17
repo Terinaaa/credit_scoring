@@ -95,21 +95,23 @@
                     </div>
                 </div>
                 
-                <!-- Кнопка ручного решения для заявок, требующих проверки -->
-                {% if application.status.type == 'Требуется ручная проверка' %}
-                <div class="alert alert-warning mt-3">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
-                    <strong>Требуется ручная проверка!</strong> 
-                    Решение по данной заявке не может быть принято автоматически.
-                    Пожалуйста, рассмотрите заявку вручную.
+                <!-- Кнопка ручного решения для всех заявок -->
+                <div class="card mt-3">
+                    <div class="card-header bg-secondary text-white">
+                        <h5><i class="fas fa-gavel me-2"></i>Ручное управление заявкой</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Вы можете изменить решение по данной заявке вручную, если считаете, что автоматическое решение требует пересмотра.
+                        </div>
+                        <div class="text-center">
+                            <a href="{% url 'credit:manual_decision' application.pk %}" class="btn btn-warning btn-lg">
+                                <i class="fas fa-user-check me-2"></i>Изменить решение вручную
+                            </a>
+                        </div>
+                    </div>
                 </div>
-                <div class="text-center mb-4">
-                    <a href="{% url 'credit:manual_decision' application.pk %}" 
-                       class="btn btn-warning btn-lg">
-                        <i class="fas fa-user-check me-2"></i>Принять решение вручную
-                    </a>
-                </div>
-                {% endif %}
             {% endif %}
             
             <!-- Данные клиента -->

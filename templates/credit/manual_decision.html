@@ -13,9 +13,14 @@
                     <p class="mb-0">Клиент: {{ application.client.get_full_name }}</p>
                 </div>
                 <div class="card-body">
+                    <!-- Информация о текущем статусе -->
                     <div class="alert alert-info">
                         <i class="fas fa-info-circle me-2"></i>
-                        Данная заявка требует ручного рассмотрения. Пожалуйста, примите решение.
+                        <strong>Текущий статус:</strong> {{ application.status.type }}
+                        <br>
+                        <strong>Текущее решение системы:</strong> {{ application.system_decision.decision|default:"Не определено" }}
+                        <br>
+                        <strong>Скоринговый балл:</strong> {{ application.scoring_score|default:"Не рассчитан" }}
                     </div>
                     
                     <!-- Информация о заявке -->
@@ -43,7 +48,7 @@
                         
                         <div class="card mb-4">
                             <div class="card-header bg-primary text-white">
-                                <h6>Принять решение</h6>
+                                <h6>Принять новое решение</h6>
                             </div>
                             <div class="card-body">
                                 <div class="mb-3">
