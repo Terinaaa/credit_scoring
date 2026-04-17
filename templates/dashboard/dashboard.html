@@ -4,115 +4,11 @@
 {% block title %}Главная{% endblock %}
 
 {% block extra_css %}
-<style>
-    .welcome-section {
-        background: #34495e;
-        border-radius: 20px;
-        padding: 35px 30px;
-        margin-bottom: 35px;
-        color: white;
-        box-shadow: 0 5px 20px rgba(0, 123, 255, 0.2);
-    }
-    
-    .welcome-section h1 {
-        font-size: 2.2em;
-        margin-bottom: 15px;
-        font-weight: 500;
-        color: white;
-    }
-    
-    .welcome-section h1 i {
-        margin-right: 12px;
-    }
-    
-    .datetime-info {
-        display: flex;
-        gap: 30px;
-        margin-top: 15px;
-        font-size: 1.6em;
-        opacity: 0.95;
-    }
-    
-    .datetime-info i {
-        margin-right: 8px;
-    }
-    
-    .stats-row {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 25px;
-        margin-bottom: 30px;
-    }
-    
-    .stat-card {
-        background: white;
-        border-radius: 20px;
-        padding: 30px 25px;
-        box-shadow: 0 5px 20px rgba(0,0,0,0.05);
-        transition: all 0.3s;
-        cursor: pointer;
-        text-decoration: none;
-        color: inherit;
-        display: block;
-        text-align: center;
-    }
-    
-    .stat-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
-    }
-    
-    .stat-icon {
-        width: 70px;
-        height: 70px;
-        border-radius: 20px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 20px;
-    }
-    
-    .stat-icon i {
-        font-size: 35px;
-        color: white;
-    }
-    
-    .stat-icon.new {
-        background: #1c8648;
-    }
-    
-    .stat-icon.manual {
-        background: #ffc107;
-    }
-    
-    .stat-content h3 {
-        font-size: 2.8em;
-        font-weight: 700;
-        margin: 0 0 8px 0;
-        color: #2c3e50;
-    }
-    
-    .stat-content p {
-        color: #6c757d;
-        margin: 0;
-        font-size: 1em;
-    }
-    
-    .stat-footer {
-        margin-top: 18px;
-        font-size: 0.9em;
-        color: #007bff;
-        font-weight: 500;
-    }
-    
-    .stat-card.manual .stat-footer {
-        color: #ffc107;
-    }
-</style>
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid px-4">
+<div class="container-fluid px-4 dashboard-page">
     
     <!-- Приветственная секция -->
     <div class="welcome-section">

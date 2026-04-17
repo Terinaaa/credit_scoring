@@ -83,12 +83,12 @@
                             </td>
                             <td>{{ client.birth_date|date:"d.m.Y" }}</td>
                             <td>
-                                <a href="tel:{{ client.phone_num }}" style="color: #667eea; text-decoration: none;">
+                                <a href="tel:{{ client.phone_num }}" class="client-contact-link">
                                     {{ client.phone_num }}
                                 </a>
                             </td>
                             <td>
-                                <a href="mailto:{{ client.email }}" style="color: #667eea; text-decoration: none;">
+                                <a href="mailto:{{ client.email }}" class="client-contact-link">
                                     {{ client.email }}
                                 </a>
                             </td>
@@ -128,7 +128,7 @@
                     <i class="fas fa-search"></i>
                     <h4>Клиенты не найдены</h4>
                     <p class="text-muted">По вашему запросу "{{ request.GET.doc_series }} {{ request.GET.doc_number }}" ничего не найдено</p>
-                    <a href="{% url 'clients:client_add' %}" class="btn-add-client mt-3" style="display: inline-block;">
+                    <a href="{% url 'clients:client_add' %}" class="btn-add-client mt-3 client-add-inline">
                         <i class="fas fa-plus-circle me-2"></i>Добавить нового клиента
                     </a>
                 </div>
@@ -175,7 +175,6 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://kit.fontawesome.com/your-fontawesome-kit.js" crossorigin="anonymous"></script>
 <script>
     // Автофокус на поле серии при загрузке страницы
     document.addEventListener('DOMContentLoaded', function() {

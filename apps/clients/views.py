@@ -1,9 +1,8 @@
 # apps/clients/views.py
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.paginator import Paginator
-from django.db.models import Q
 from .models import Client, ClientData
 from .forms import ClientForm, ClientSearchForm
 from django.http import JsonResponse
@@ -13,7 +12,7 @@ from django.db import models
 
 @login_required
 def client_list(request):
-    """Список клиентов с поиском по паспорту"""
+    """Отображение списка клиентов с поиском по паспортным данным."""
     clients = Client.objects.all()
     search_form = ClientSearchForm(request.GET or None)
     
@@ -21,6 +20,7 @@ def client_list(request):
         series = search_form.cleaned_data.get('doc_series')
         number = search_form.cleaned_data.get('doc_number')
         
+        # Фильтрация по паспорту: поиск точного совпадения серии и номера документа.
         if series and number:
             clients = clients.filter(
                 doc_series=series,
@@ -29,7 +29,7 @@ def client_list(request):
             if not clients.exists():
                 messages.info(request, f'Клиенты с паспортом {series} {number} не найдены')
     
-    # Пагинация
+    # Постраничная выдача результатов для стабильной загрузки интерфейса при большом объеме данных.
     paginator = Paginator(clients, 20)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -42,7 +42,7 @@ def client_list(request):
 
 @login_required
 def client_add(request):
-    """Добавление нового клиента"""
+    """Создание новой карточки клиента."""
     if request.method == 'POST':
         form = ClientForm(request.POST)
         if form.is_valid():
@@ -63,7 +63,7 @@ def client_add(request):
 
 @login_required
 def client_edit(request, pk):
-    """Редактирование клиента"""
+    """Редактирование существующей карточки клиента."""
     client = get_object_or_404(Client, pk=pk)
     
     if request.method == 'POST':
@@ -83,34 +83,32 @@ def client_edit(request, pk):
 
 @login_required
 def client_data_view(request, pk):
-    """
-    Просмотр всех финансовых данных клиента
-    """
+    """Просмотр финансовых показателей и статистики клиента."""
     client = get_object_or_404(Client, pk=pk)
     
-    # Получаем все финансовые данные клиента (последние сверху)
+    # Выборка истории финансовых параметров клиента в порядке убывания даты создания.
     financial_data = ClientData.objects.filter(client=client).order_by('-created_at')
     
-    # Получаем все кредитные заявки клиента (для статистики)
+    # Выборка заявок клиента для блока статистики и переходов по связанным объектам.
     applications = CreditApplication.objects.filter(client=client).select_related(
         'status', 'system_decision', 'risk_category'
     ).order_by('-created_at')
     
-    # Пагинация для финансовых данных
+    # Пагинация финансовых записей.
     paginator = Paginator(financial_data, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
-    # Расчет среднего ежемесячного дохода (из годового дохода)
+    # Расчет среднего ежемесячного дохода на основании исторических годовых значений.
     avg_monthly_income = 0
     if financial_data.exists():
-        # Считаем средний годовой доход
+        # Агрегация годового дохода по всем записям клиента.
         avg_annual = financial_data.aggregate(models.Avg('annual_inc'))['annual_inc__avg']
         if avg_annual:
-            # Переводим в ежемесячный
+            # Нормализация значения в месячный формат.
             avg_monthly_income = avg_annual / 12
     
-    # Статистика по клиенту
+    # Формирование сводной статистики для информационных виджетов интерфейса.
     stats = {
         'total_financial_records': financial_data.count(),
         'total_applications': applications.count(),
@@ -127,7 +125,7 @@ def client_data_view(request, pk):
 
 @login_required
 def client_delete(request, pk):
-    """Удаление клиента"""
+    """Удаление карточки клиента по подтвержденному POST-запросу."""
     client = get_object_or_404(Client, pk=pk)
     
     if request.method == 'POST':
@@ -142,12 +140,11 @@ def client_delete(request, pk):
 @require_GET
 @login_required
 def get_client_by_passport(request):
-    """
-    AJAX-эндпоинт для получения данных клиента по паспорту
-    """
+    """Возврат данных клиента по серии и номеру паспорта в формате JSON."""
     doc_series = request.GET.get('doc_series', '').strip()
     doc_number = request.GET.get('doc_number', '').strip()
     
+    # Проверка полноты параметров запроса: серия и номер паспорта обязательны.
     if not doc_series or not doc_number:
         return JsonResponse({'error': 'Не указаны паспортные данные'}, status=400)
     

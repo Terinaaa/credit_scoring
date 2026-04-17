@@ -3,6 +3,9 @@
 
 {% block title %}Личный кабинет{% endblock %}
 {% block page_title %}Личный кабинет{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/personal_account.css' %}">
+{% endblock %}
 
 {% block content %}
 <div class="profile-container">
@@ -11,21 +14,21 @@
             <div class="profile-avatar-large">
                 {{ user.first_name|first|upper }}
             </div>
-            <div style="margin-left: 20px;">
-                <h2 style="margin: 0 0 5px 0; color: #2c3e50;">
+            <div class="profile-header-meta">
+                <h2 class="profile-user-name">
                     {{ user.get_full_name }}
                 </h2>
-                <p style="color: #3498db; margin: 0; font-weight: 500;">
+                <p class="profile-user-position">
                     {{ user.position.name|default:"Должность не указана" }}
                 </p>
-                <p style="color: #7f8c8d; margin: 5px 0 0 0; font-size: 14px;">
+                <p class="profile-user-role">
                     {{ user.role.get_name_display|default:"Роль не назначена" }}
                 </p>
             </div>
         </div>
         
         <div class="profile-details-section">
-            <h3 style="color: #2c3e50; margin: 30px 0 20px 0; padding-bottom: 10px; border-bottom: 2px solid #f0f0f0;">
+            <h3 class="profile-section-title">
                 Информация о сотруднике
             </h3>
             
@@ -51,7 +54,7 @@
                         {% if user.middle_name %}
                             {{ user.middle_name }}
                         {% else %}
-                            <span style="color: #95a5a6;">Не указано</span>
+                            <span class="detail-empty">Не указано</span>
                         {% endif %}
                     </span>
                 </div>
@@ -79,20 +82,20 @@
         </div>
         
         <div class="profile-actions-section">
-            <h3 style="color: #2c3e50; margin: 30px 0 20px 0; padding-bottom: 10px; border-bottom: 2px solid #f0f0f0;">
+            <h3 class="profile-section-title">
                 Действия
             </h3>
             
             <div class="action-buttons">
                 <button data-url="{% url 'change_password' %}" 
                         class="action-button change-password-btn">
-                    <span style="margin-right: 10px;">🔒</span>
+                    <span class="inline-icon-gap">🔒</span>
                     Изменить пароль
                 </button>
                 
                 <button data-url="{% url 'index' %}" 
                         class="action-button edit-profile-btn">
-                    <span style="margin-right: 10px;">🏠</span>
+                    <span class="inline-icon-gap">🏠</span>
                     На главную
                 </button>
             </div>

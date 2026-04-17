@@ -1,0 +1,8 @@
+.admin-system-container { padding: 20px; }
+.admin-system-card { background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 20px 0; }
+.admin-system-table { width: 100%; }
+.admin-model-table { width: 100%; border-collapse: collapse; }
+.admin-btn-danger { background: #dc3545; }
+.admin-btn-success { background: #28a745; }
+.admin-btn-primary { background: #007bff; }
+.admin-model-file-input { margin: 10px 0; }

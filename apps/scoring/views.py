@@ -4,31 +4,19 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .forms import ScoringInputForm
 from .ml_service import predict
-#from .models import ScoringResult  # если хотите сохранять историю
 
 @login_required
 def scoring_view(request):
+    """Форма разового скоринга с расчетом вероятности дефолта."""
     result = None
-    form_data = None
     
     if request.method == 'POST':
         form = ScoringInputForm(request.POST)
         if form.is_valid():
-            form_data = form.cleaned_data
             try:
-                # Вызываем ML модель
-                result = predict(form_data)
+                # Запуск ML-сервиса для оценки введенных признаков заемщика.
+                result = predict(form.cleaned_data)
                 messages.success(request, 'Скоринг успешно выполнен!')
-                
-                # Сохраняем в историю (опционально)
-                # ScoringResult.objects.create(
-                #     user=request.user,
-                #     input_data=form_data,
-                #     probability=result['probability_raw'],
-                #     decision=result['decision'],
-                #     score=result['score']
-                # )
-                
             except Exception as e:
                 messages.error(request, f'Ошибка при расчете: {e}')
         else:

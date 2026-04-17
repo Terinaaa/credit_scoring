@@ -1,12 +1,14 @@
 {% extends "admin/base_site.html" %}
+{% load static %}
 
 {% block content %}
-<div style="padding: 20px;">
+<link rel="stylesheet" href="{% static 'css/admin_system.css' %}">
+<div class="admin-system-container">
     <h1>Управление ML-моделью</h1>
     
-    <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 20px 0;">
+    <div class="admin-system-card">
         <h2>Текущие модели</h2>
-        <table style="width: 100%; border-collapse: collapse;">
+        <table class="admin-model-table">
             <thead>
                 <tr>
                     <th>Имя файла</th>
@@ -20,7 +22,7 @@
                     <td>{{ model.name }}</td>
                     <td>{{ model.size }}</td>
                     <td>
-                        <button class="button" style="background: #dc3545;">Удалить</button>
+                        <button class="button admin-btn-danger">Удалить</button>
                     </td>
                 </tr>
                 {% empty %}
@@ -32,22 +34,22 @@
         </table>
     </div>
     
-    <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 20px 0;">
+    <div class="admin-system-card">
         <h2>Переобучение модели</h2>
         <form method="post" action="retrain/">
             {% csrf_token %}
             <p>Запустить процесс переобучения модели на актуальных данных?</p>
-            <button type="submit" class="button" style="background: #28a745;">Запустить переобучение</button>
+            <button type="submit" class="button admin-btn-success">Запустить переобучение</button>
         </form>
     </div>
     
-    <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 20px 0;">
+    <div class="admin-system-card">
         <h2>Загрузка новой модели</h2>
         <form method="post" action="upload-model/" enctype="multipart/form-data">
             {% csrf_token %}
-            <input type="file" name="model_file" accept=".pkl" style="margin: 10px 0;">
+            <input type="file" name="model_file" accept=".pkl" class="admin-model-file-input">
             <br>
-            <button type="submit" class="button" style="background: #007bff;">Загрузить</button>
+            <button type="submit" class="button admin-btn-primary">Загрузить</button>
         </form>
     </div>
 </div>

@@ -1,12 +1,14 @@
 {% extends "admin/base_site.html" %}
+{% load static %}
 
 {% block content %}
-<div style="padding: 20px;">
+<link rel="stylesheet" href="{% static 'css/admin_system.css' %}">
+<div class="admin-system-container">
     <h1>Системная информация</h1>
     
-    <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 20px 0;">
+    <div class="admin-system-card">
         <h2>Версии компонентов</h2>
-        <table style="width: 100%;">
+        <table class="admin-system-table">
             {% for key, value in system_info.items %}
             <tr>
                 <td><strong>{{ key }}:</strong></td>
@@ -16,7 +18,7 @@
         </table>
     </div>
     
-    <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 20px 0;">
+    <div class="admin-system-card">
         <h2>Журнал событий</h2>
         <p>Здесь будет отображаться лог операций системного администратора</p>
     </div>

@@ -368,4 +368,13 @@ button.btn-add-client:hover,
         border-radius: 5px;
         font-size: 0.8em;
         margin-left: 10px;
-    }
+}
+
+.client-contact-link {
+    color: #667eea;
+    text-decoration: none;
+}
+
+.client-add-inline {
+    display: inline-block;
+}

@@ -10,28 +10,20 @@ from .forms import ScoringDataForm, CreditApplicationForm
 from django.utils import timezone
 from .ml_scoring import predict_application, get_shap_factors
 from apps.scoring.models import SystemDecision, RiskCategory
-from django.db.models import Q
-from django.utils import timezone
 from datetime import timedelta
 from .forms import ApplicationFilterForm
-from django.http import JsonResponse
-from django.views.decorators.http import require_GET
-from django.views.decorators.csrf import csrf_exempt
-from django.http import JsonResponse
-from django.views.decorators.http import require_POST
 from .forms import ManualDecisionForm
-from apps.scoring.models import SystemDecision, RiskCategory
 
 
 @login_required
 def client_applications(request, client_id):
-    """Список заявок клиента"""
+    """Отображение списка заявок выбранного клиента."""
     client = get_object_or_404(Client, pk=client_id)
     applications = CreditApplication.objects.filter(client=client).select_related(
         'status', 'system_decision', 'risk_category'
     ).order_by('-created_at')
 
-    # Пагинация
+    # Пагинация списка заявок клиента.
     paginator = Paginator(applications, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -45,30 +37,27 @@ def client_applications(request, client_id):
 
 @login_required
 def application_create(request, client_id):
-    """
-    Создание новой кредитной заявки.
-    Использует ScoringDataForm для ввода всех признаков модели.
-    """
+    """Создание кредитной заявки и связанных скоринговых данных клиента."""
     client = get_object_or_404(Client, pk=client_id)
     
     if request.method == 'POST':
-        # Используем ScoringDataForm для всех признаков скоринга
+        # Инициализация двух форм: признаки скоринга и параметры кредитного продукта.
         scoring_form = ScoringDataForm(request.POST)
         application_form = CreditApplicationForm(request.POST)
         
         if scoring_form.is_valid() and application_form.is_valid():
-            # 1. Сохраняем финансовые данные клиента (все признаки)
+            # Сохранение финансовых признаков, использующихся моделью.
             client_data = scoring_form.save(commit=False)
             client_data.client = client
             client_data.save()
             
-            # 2. Получаем статус "Новая"
+            # Назначение стартового статуса заявки.
             new_status, _ = ApplicationStatus.objects.get_or_create(
                 type='Новая',
                 defaults={'description': 'Только создана, скоринг не проводился'}
             )
             
-            # 3. Создаем заявку
+            # Создание кредитной заявки с привязкой к клиенту и сохраненным признакам.
             application = application_form.save(commit=False)
             application.client = client
             application.client_data = client_data
@@ -79,37 +68,34 @@ def application_create(request, client_id):
             messages.success(request, f'Заявка №{application.app_num} успешно создана')
             return redirect('credit:client_applications', client_id=client.id)
         else:
-            # Форма невалидна - показываем ошибки
+            # Вывод диагностических сообщений при невалидных данных формы.
             if scoring_form.errors:
                 messages.error(request, 'Пожалуйста, исправьте ошибки в финансовых данных')
             if application_form.errors:
                 messages.error(request, 'Пожалуйста, исправьте ошибки в параметрах кредита')
     else:
-        # GET запрос - предзаполняем форму последними данными клиента
+        # Предзаполнение формы последними доступными финансовыми данными клиента.
         last_client_data = ClientData.objects.filter(client=client).first()
         
         if last_client_data:
-            # Используем последние данные для предзаполнения
             scoring_form = ScoringDataForm(instance=last_client_data)
         else:
             scoring_form = ScoringDataForm()
         
-        # Для параметров кредита можно предзаполнить значения по умолчанию
+        # Инициализация формы параметров кредита.
         initial_application = {}
         application_form = CreditApplicationForm(initial=initial_application)
     
     return render(request, 'credit/application_form.html', {
         'client': client,
-        'scoring_form': scoring_form,      # переименовано для ясности
+        'scoring_form': scoring_form,
         'application_form': application_form,
     })
 
 
 @login_required
 def application_detail(request, pk):
-    """
-    Детальный просмотр заявки с отображением всех признаков скоринга.
-    """
+    """Детальный просмотр заявки и связанных сущностей скорингового процесса."""
     application = get_object_or_404(
         CreditApplication.objects.select_related(
             'client', 'client_data', 'status', 'system_decision', 'risk_category'
@@ -123,33 +109,31 @@ def application_detail(request, pk):
 
 @login_required
 def application_score(request, pk):
-    """
-    Оценка кредитоспособности по заявке с помощью ML-модели
-    """
+    """Выполнение ML-скоринга по выбранной заявке."""
     application = get_object_or_404(
         CreditApplication.objects.select_related('client_data', 'status'),
         pk=pk
     )
     
-    # Проверяем, не оценивалась ли уже заявка
+    # Контроль повторного скоринга: заявка обрабатывается моделью однократно.
     if application.scoring_date is not None:
         messages.warning(request, 'Данная заявка уже была оценена')
         return redirect('credit:application_detail', pk=application.pk)
     
     try:
-        # Получаем предсказание
+        # Запуск модели и получение числового прогноза.
         result = predict_application(application)
         
-        # Получаем SHAP факторы
+        # Формирование объясняющих факторов для итогового решения.
         factors = get_shap_factors(application)
         
-        # Обновляем заявку результатами скоринга
+        # Сохранение ключевых метрик скоринга в объект заявки.
         application.scoring_score = result['score']
         application.probability_default = result['probability']
         application.scoring_date = timezone.now()
-        application.top_factors = factors  # Используем существующее поле top_factors
+        application.top_factors = factors
         
-        # Определяем системное решение и категорию риска
+        # Назначение системного решения, категории риска и статуса заявки.
         if result['decision'] == 'AUTO_APPROVE':
             system_decision, _ = SystemDecision.objects.get_or_create(
                 decision='AUTO_APPROVE',
@@ -208,25 +192,22 @@ def application_score(request, pk):
 
 @login_required
 def application_list(request):
-    """
-    Список всех заявок с фильтрацией
-    Доступен для кредитных менеджеров и руководителей
-    """
-    # Форма фильтрации
+    """Отображение общего реестра заявок с фильтрацией и статистикой."""
+    # Инициализация формы фильтрации входными query-параметрами.
     filter_form = ApplicationFilterForm(request.GET or None)
     
-    # Базовый запрос - все заявки (без фильтра по дате по умолчанию)
+    # Базовая выборка заявок с необходимыми связанными сущностями.
     applications = CreditApplication.objects.all().select_related(
         'client', 'status', 'system_decision', 'risk_category'
     ).order_by('-created_at')
     
     if filter_form.is_valid():
-        # Фильтр по статусу
+        # Фильтрация по статусу обработки заявки.
         status = filter_form.cleaned_data.get('status')
         if status:
             applications = applications.filter(status__type__iexact=status)
         
-        # Фильтр по дате
+        # Фильтрация по нижней границе даты создания.
         date_from = filter_form.cleaned_data.get('date_from')
         if date_from:
             applications = applications.filter(created_at__date__gte=date_from)
@@ -235,7 +216,7 @@ def application_list(request):
         if date_to:
             applications = applications.filter(created_at__date__lte=date_to)
         
-        # Фильтр по паспортным данным
+        # Фильтрация по паспорту клиента.
         doc_series = filter_form.cleaned_data.get('doc_series')
         doc_number = filter_form.cleaned_data.get('doc_number')
         
@@ -249,16 +230,16 @@ def application_list(request):
         elif doc_number:
             applications = applications.filter(client__doc_number=doc_number)
     else:
-        # Если фильтр не применен, показываем только заявки за последние 30 дней
+        # Ограничение периода по умолчанию при отсутствии валидного фильтра.
         one_month_ago = timezone.now() - timedelta(days=30)
         applications = applications.filter(created_at__gte=one_month_ago)
     
-    # Пагинация
+    # Пагинация итоговой выборки.
     paginator = Paginator(applications, 20)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
-    # Статистика по заявкам
+    # Расчет агрегированной статистики для дашборда списка заявок.
     stats = {
         'total': applications.count(),
         'approved': applications.filter(status__type='Одобрена').count(),
@@ -273,38 +254,10 @@ def application_list(request):
         'stats': stats,
     })
 
-@require_GET
-@login_required
-def get_client_by_passport(request):
-    doc_series = request.GET.get('doc_series', '').strip()
-    doc_number = request.GET.get('doc_number', '').strip()
-    
-    if not doc_series or not doc_number:
-        return JsonResponse({'error': 'Не указаны паспортные данные'}, status=400)
-    
-    try:
-        client = Client.objects.get(doc_series=doc_series, doc_number=doc_number)
-        
-        data = {
-            'exists': True,
-            'id': client.id,
-            'first_name': client.first_name,
-            'last_name': client.last_name,
-            'middle_name': client.middle_name or '',
-            'birth_date': client.birth_date.strftime('%Y-%m-%d'),
-            'email': client.email,
-            'phone_num': client.phone_num,
-        }
-        return JsonResponse(data)
-        
-    except Client.DoesNotExist:
-        return JsonResponse({'exists': False, 'error': 'Клиент не найден'}, status=404)
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
-    
 @login_required
 def select_client_for_application(request):
-    # Поиск по паспорту
+    """Поиск клиента для запуска процесса создания заявки."""
+    # Фильтрация по паспорту.
     doc_series = request.GET.get('doc_series', '').strip()
     doc_number = request.GET.get('doc_number', '').strip()
     clients = Client.objects.all()
@@ -319,7 +272,7 @@ def select_client_for_application(request):
         elif doc_number:
             clients = clients.filter(doc_number=doc_number)
     
-    # Пагинация
+    # Пагинация результатов поиска.
     paginator = Paginator(clients, 20)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -334,9 +287,7 @@ def select_client_for_application(request):
 
 @login_required
 def manual_decision(request, pk):
-    """
-    Ручное изменение статуса заявки (для любых заявок)
-    """
+    """Ручное изменение статуса заявки и фиксация истории решения."""
     application = get_object_or_404(
         CreditApplication.objects.select_related('status', 'client'),
         pk=pk
@@ -348,12 +299,12 @@ def manual_decision(request, pk):
             decision = form.cleaned_data['decision']
             comment = form.cleaned_data.get('comment', '')
             
-            # Сохраняем старое решение для истории
+            # Сохранение состояния заявки до ручной корректировки.
             old_status = application.status.type
             old_decision = application.system_decision.decision if application.system_decision else None
             
             if decision == 'approved':
-                # Одобряем заявку
+                # Ручное одобрение заявки.
                 new_status, _ = ApplicationStatus.objects.get_or_create(
                     type='Одобрена',
                     defaults={'description': 'Кредит одобрен'}
@@ -369,7 +320,7 @@ def manual_decision(request, pk):
                 messages.success(request, f'Заявка №{application.app_num} одобрена вручную')
                 
             elif decision == 'rejected':
-                # Отклоняем заявку
+                # Ручной отказ по заявке.
                 new_status, _ = ApplicationStatus.objects.get_or_create(
                     type='Отказано',
                     defaults={'description': 'В выдаче кредита отказано'}
@@ -384,12 +335,12 @@ def manual_decision(request, pk):
                 )
                 messages.warning(request, f'Заявка №{application.app_num} отклонена вручную')
             
-            # Обновляем заявку
+            # Применение нового статуса и служебных атрибутов к заявке.
             application.status = new_status
             application.system_decision = system_decision
             application.risk_category = risk_category
             
-            # Сохраняем историю ручного решения
+            # Формирование блока истории ручного решения.
             manual_history = {
                 'old_status': old_status,
                 'old_decision': old_decision,
@@ -402,7 +353,7 @@ def manual_decision(request, pk):
                 'previous_probability': application.probability_default,
             }
             
-            # Проверяем тип top_factors и корректно добавляем историю
+            # Нормализация структуры `top_factors` перед добавлением истории.
             if application.top_factors is None:
                 application.top_factors = {'manual_history': [manual_history]}
             elif isinstance(application.top_factors, dict):
@@ -410,10 +361,8 @@ def manual_decision(request, pk):
                     application.top_factors['manual_history'] = []
                 application.top_factors['manual_history'].append(manual_history)
             elif isinstance(application.top_factors, list):
-                # Если это список, преобразуем в словарь
                 application.top_factors = {'manual_history': [manual_history]}
             else:
-                # Любой другой случай
                 application.top_factors = {'manual_history': [manual_history]}
             
             application.save()

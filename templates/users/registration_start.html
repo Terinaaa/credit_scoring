@@ -1,17 +1,21 @@
 <!-- templates/users/registration_start.html -->
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Начало регистрации{% endblock %}
 {% block page_title %}Начало регистрации{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/registration_start.css' %}">
+{% endblock %}
 
 {% block content %}
 <div class="form-wrapper">
     <div class="container">
-        <h2 style="text-align: center; margin-bottom: 30px; color: #2c3e50;">
+        <h2 class="registration-start-title">
             Введите табельный номер
         </h2>
         
-        <p style="text-align: center; margin-bottom: 30px; color: #7f8c8d;">
+        <p class="registration-start-description">
             Регистрация доступна только сотрудникам, добавленным администратором системы.
             Если у вас нет табельного номера в системе, обратитесь к администратору.
         </p>
