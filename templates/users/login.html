@@ -7,7 +7,7 @@
 {% block content %}
 <div class="form-wrapper">
     <div class="container">
-        <form method="POST" action="{% url 'login' %}" id="loginForm">
+        <form method="POST" action="{% url 'users:login' %}" id="loginForm">
             {% csrf_token %}
             
             <div class="form-group">
@@ -31,7 +31,7 @@
             <button type="submit" name="submit" id="submitBtn">Войти</button>
             
             <div class="login-link">
-                <p>Нет учетной записи? <a href="{% url 'registration_start' %}">Зарегистрироваться</a></p>
+                <p>Нет учетной записи? <a href="{% url 'users:registration_start' %}">Зарегистрироваться</a></p>
             </div>
         </form>
     </div>

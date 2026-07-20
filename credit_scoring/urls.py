@@ -11,7 +11,7 @@ urlpatterns = [
     path('system-admin/', system_admin_site.urls),  # Админка для системного администратора
     path('', dashboard_view, name='index'),
     path('users/', include('apps.users.urls')),
-    path('clients/', include('apps.clients.urls')),
+    path('clients/', include('apps.clients.urls',)),
     path('scoring/', include('apps.scoring.urls')),
     path('credit/', include('apps.credit.urls')),
     path('reports/', include('apps.reports.urls')),

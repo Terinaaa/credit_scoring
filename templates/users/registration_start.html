@@ -20,7 +20,7 @@
             Если у вас нет табельного номера в системе, обратитесь к администратору.
         </p>
         
-        <form method="POST" action="{% url 'registration_start' %}" id="personnelNumberForm">
+        <form method="POST" action="{% url 'users:registration_start' %}" id="personnelNumberForm">
             {% csrf_token %}
             
             <div class="form-group">
@@ -38,7 +38,7 @@
             <button type="submit" name="submit" id="submitBtn">Продолжить</button>
             
             <div class="login-link">
-                <p>Уже есть учетная запись? <a href="{% url 'login' %}">Войти</a></p>
+                <p>Уже есть учетная запись? <a href="{% url 'users:login' %}">Войти</a></p>
             </div>
         </form>
     </div>

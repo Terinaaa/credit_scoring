@@ -15,7 +15,6 @@
         <nav class="sidebar">
             <div class="sidebar-header">
                 <h2>Кредитный Скоринг</h2>
-                <div class="subtitle">AI Powered System</div>
             </div>
             <ul class="nav-menu">
                 {% for item in menu_items %}
@@ -30,7 +29,7 @@
                 
                 {% if user.is_authenticated %}
                     <li class="nav-item">
-                        <a class="nav-link nav-link-logout" href="{% url 'logout' %}">
+                        <a class="nav-link nav-link-logout" href="{% url 'users:logout' %}">
                             Выйти
                         </a>
                     </li>
@@ -44,7 +43,7 @@
                 <div class="content-header-row">
                     <h1 class="content-header-title">{% block page_title %}{% endblock %}</h1>
                     {% if user.is_authenticated %}
-                        <a href="{% url 'personal_account' %}" class="user-info-link user-info-link-base">
+                        <a href="{% url 'users:personal_account' %}" class="user-info-link user-info-link-base">
                             <div class="user-info">
                                 <div class="user-avatar">
                                     {{ user.first_name|first|upper }}

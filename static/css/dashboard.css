@@ -18,6 +18,6 @@
 .dashboard-page .stat-icon.new { background: #1c8648; }
 .dashboard-page .stat-icon.manual { background: #ffc107; }
 .dashboard-page .stat-content h3 { font-size: 2.8em; font-weight: 700; margin: 0 0 8px 0; color: #2c3e50; }
-.dashboard-page .stat-content p { color: #6c757d; margin: 0; font-size: 1em; }
-.dashboard-page .stat-footer { margin-top: 18px; font-size: 0.9em; color: #007bff; font-weight: 500; }
+.dashboard-page .stat-content p { color: #6c757d; margin: 0; font-size: 2em; }
+.dashboard-page .stat-footer { margin-top: 18px; font-size: 1em; color: #007bff; font-weight: 500; }
 .dashboard-page .stat-card.manual .stat-footer { color: #ffc107; }

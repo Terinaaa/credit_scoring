@@ -44,6 +44,13 @@
             <i class="fas fa-info-circle me-2"></i>
             Найдено клиентов: {{ clients_count }}
         </div>
+        {% if clients_count == 0 %}
+            <div class="add-client-action">
+                <a href="{% url 'clients:client_add' %}" class="btn-add-client">
+                    <i class="fas fa-plus-circle me-2"></i>Добавить клиента
+                </a>
+            </div>
+        {% endif %}
     {% else %}
         <div class="info-message">
             <i class="fas fa-info-circle me-2"></i>
